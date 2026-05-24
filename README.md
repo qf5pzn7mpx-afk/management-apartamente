@@ -1,16 +1,17 @@
-# React + Vite
+👥 Echipa
+Ciprian Varga - Business Analyst (BA) -> Organizare, definirea cerințelor și documentație
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Alina Iuga - Developer -> Programarea interfeței aplicației
 
-Currently, two official plugins are available:
+Daria Joarza - Developer -> Programarea interfeței aplicației
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Marta Mihai - Tester -> Testarea interfeței și verificarea problemelor
 
-## React Compiler
+Funcționalități Principale
+Proiectul este împărțit în 3 module mari:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Documente pentru chiriași: Secțiune dedicată stocării și vizualizării documentelor importante (ex: contracte de închiriere, copii după buletin).
 
-## Expanding the ESLint configuration
+Gestionarea facturilor: Modul pentru evidența plăților, a facturilor emise, a sumelor datorate de chiriași și a datelor scadente.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Întreținere: Secțiune pentru gestionarea costurilor lunare de întreținere și a eventualelor reparații semnalate în apartamente.
