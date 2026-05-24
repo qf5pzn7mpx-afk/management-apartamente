@@ -1,12 +1,15 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from './AuthContext';
 
 function Navbar() {
   const [meniuDeschis, setMeniuDeschis] = useState(false);
+
   const navigate = useNavigate();
-  const { userRole, logout } = useContext(AuthContext) || {};
+  const { user, logout } = useContext(AuthContext) || {};
+  const userRole = user?.role;
+
   const roleLabel = userRole === 'manager' ? 'Manager' : userRole === 'chirias' ? 'Chiriaș' : null;
 
   const handleLogout = () => {
@@ -20,144 +23,224 @@ function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 shadow-sm border-b border-slate-200 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-4">
-        <Link to="/" className="flex items-center">
-          <svg width="40" height="40" viewBox="0 0 40 40" rx="10" fill="none" className="flex-shrink-0">
-            <rect width="40" height="40" rx="10" fill="#FEF08A"/>
-            <path d="M12 22h16M12 22v8h4v-4h8v4h4v-8M20 12l-8 6v4h16v-4l-8-6Z" stroke="#92400E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          </svg>
-        </Link>
+    <>
+      <nav className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-lg">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          
+          {/* LOGO */}
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-400 shadow-md">
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#111827"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 10.5L12 3l9 7.5" />
+                <path d="M5 9.5V21h14V9.5" />
+                <path d="M9 21v-6h6v6" />
+              </svg>
+            </div>
 
-        <motion.button
-          onClick={() => navigate('/contact')}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="ml-6 hidden md:inline-flex items-center justify-center bg-transparent border-none"
-        >
-          <svg width="40" height="40" viewBox="0 0 40 40" rx="10" fill="none" className="flex-shrink-0">
-            <rect width="40" height="40" rx="10" fill="#FEF08A"/>
-            <path d="M28 20.92v2.4a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 10.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L14.09 11.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 28 20.92z" stroke="#92400E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" transform="translate(20,22) scale(0.7) translate(-20,-20)"/>
-          </svg>
-        </motion.button>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-extrabold tracking-wide text-white">
+                ApartManager
+              </h1>
+              <p className="text-xs tracking-[0.25em] text-slate-400 uppercase">
+                Property Management
+              </p>
+            </div>
+          </Link>
 
-        <div className="hidden md:flex items-center gap-5 text-sm font-medium text-slate-700 ml-auto">
-          <Link to="/" className="hover:text-slate-900 transition">Acasă</Link>
-          <Link to="/contact" className="hover:text-slate-900 transition">Contact</Link>
-          <Link to="/facturi" className="hover:text-slate-900 transition">Gestionare Facturi</Link>
-          <Link to="/mentenanta" className="hover:text-slate-900 transition">Cereri Întreținere</Link>
-          <Link to="/documente" className="hover:text-slate-900 transition">Documente Chiriaș</Link>
-          {roleLabel && (
-            <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-800">
-              {roleLabel}
-            </span>
-          )}
-          {userRole ? (
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition duration-200 hover:bg-slate-50"
+          {/* DESKTOP MENU */}
+          <div className="hidden items-center gap-6 md:flex">
+            <Link
+              to="/"
+              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
             >
-              Ieși
-            </button>
-          ) : (
-            <motion.button
-              type="button"
-              onClick={handleLoginClick}
-              whileHover={{ scale: 1.04 }}
-              className="inline-flex items-center justify-center rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-black shadow-md transition duration-200 hover:bg-yellow-500"
+              Acasă
+            </Link>
+
+            {/* Role-specific dashboard link */}
+            {userRole === 'manager' && (
+              <Link
+                to="/manager/dashboard"
+                className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
+              >
+                Panou Manager
+              </Link>
+            )}
+
+            {userRole === 'chirias' && (
+              <Link
+                to="/chirias/dashboard"
+                className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
+              >
+                Panou Chiriaș
+              </Link>
+            )}
+
+            <Link
+              to="/contact"
+              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
             >
-              Conectează-te
-            </motion.button>
-          )}
+              Contact
+            </Link>
+
+            <Link
+              to="/facturi"
+              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
+            >
+              Facturi
+            </Link>
+
+            <Link
+              to="/mentenanta"
+              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
+            >
+              Mentenanță
+            </Link>
+
+            <Link
+              to="/documente"
+              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
+            >
+              Documente
+            </Link>
+
+            {roleLabel && (
+              <span className="rounded-full bg-yellow-400 px-4 py-2 text-xs font-bold text-black shadow-md">
+                {roleLabel}
+              </span>
+            )}
+
+            {userRole ? (
+              <button
+                onClick={handleLogout}
+                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
+              >
+                Ieși
+              </button>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLoginClick}
+                className="rounded-xl bg-yellow-400 px-5 py-2 text-sm font-bold text-black shadow-lg transition hover:bg-yellow-300"
+              >
+                Conectează-te
+              </motion.button>
+            )}
+          </div>
+
+          {/* MOBILE BUTTON */}
+          <button
+            onClick={() => setMeniuDeschis(!meniuDeschis)}
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-400 text-black shadow-md md:hidden"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 7h16M4 12h16M4 17h16"
+              />
+            </svg>
+          </button>
         </div>
 
-        <motion.button
-          onClick={() => navigate('/contact')}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="inline-flex md:hidden items-center justify-center bg-transparent border-none"
-        >
-          <svg width="40" height="40" viewBox="0 0 40 40" rx="10" fill="none" className="flex-shrink-0">
-            <rect width="40" height="40" rx="10" fill="#FEF08A"/>
-            <path d="M28 20.92v2.4a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 10.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L14.09 11.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 28 20.92z" stroke="#92400E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" transform="translate(20,22) scale(0.7) translate(-20,-20)"/>
-          </svg>
-        </motion.button>
-
-        <motion.button
-          onClick={() => setMeniuDeschis(!meniuDeschis)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-amber-900 shadow-md transition duration-200 hover:bg-yellow-200 md:hidden"
-          aria-label="Meniu mobil"
-        >
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 7h16" />
-            <path d="M4 12h16" />
-            <path d="M4 17h16" />
-          </svg>
-        </motion.button>
-      </div>
-
-      {meniuDeschis && (
-        <div className="md:hidden border-t border-slate-200 bg-white/95 px-6 py-4">
-          <Link
-            to="/"
-            className="block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
-            onClick={() => setMeniuDeschis(false)}
-          >
-            Acasă
-          </Link>
-          <Link
-            to="/contact"
-            className="mt-2 block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
-            onClick={() => setMeniuDeschis(false)}
-          >
-            Contact
-          </Link>
-          <Link
-            to="/facturi"
-            className="mt-2 block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
-            onClick={() => setMeniuDeschis(false)}
-          >
-            Gestionare Facturi
-          </Link>
-          <Link
-            to="/mentenanta"
-            className="mt-2 block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
-            onClick={() => setMeniuDeschis(false)}
-          >
-            Cereri Întreținere
-          </Link>
-          <Link
-            to="/documente"
-            className="mt-2 block rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
-            onClick={() => setMeniuDeschis(false)}
-          >
-            Documente Chiriaș
-          </Link>
-          {userRole ? (
-            <button
-              onClick={handleLogout}
-              className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+        {/* MOBILE MENU */}
+        <AnimatePresence>
+          {meniuDeschis && (
+            <motion.div
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25 }}
+              className="border-t border-slate-800 bg-slate-950 px-6 py-5 md:hidden"
             >
-              Ieși
-            </button>
-          ) : (
-            <motion.button
-              type="button"
-              onClick={() => {
-                setMeniuDeschis(false);
-                handleLoginClick();
-              }}
-              whileHover={{ scale: 1.02 }}
-              className="mt-4 block w-full rounded-lg bg-yellow-400 px-4 py-3 text-center text-sm font-bold text-black transition duration-200 hover:bg-yellow-500"
-            >
-              Conectează-te
-            </motion.button>
+              <div className="flex flex-col gap-3">
+                <Link
+                  to="/"
+                  onClick={() => setMeniuDeschis(false)}
+                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+                >
+                  Acasă
+                </Link>
+
+                {userRole === 'manager' && (
+                  <Link to="/manager/dashboard" onClick={() => setMeniuDeschis(false)} className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800">Panou Manager</Link>
+                )}
+
+                {userRole === 'chirias' && (
+                  <Link to="/chirias/dashboard" onClick={() => setMeniuDeschis(false)} className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800">Panou Chiriaș</Link>
+                )}
+
+                <Link
+                  to="/contact"
+                  onClick={() => setMeniuDeschis(false)}
+                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+                >
+                  Contact
+                </Link>
+
+                <Link
+                  to="/facturi"
+                  onClick={() => setMeniuDeschis(false)}
+                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+                >
+                  Facturi
+                </Link>
+
+                <Link
+                  to="/mentenanta"
+                  onClick={() => setMeniuDeschis(false)}
+                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+                >
+                  Mentenanță
+                </Link>
+
+                <Link
+                  to="/documente"
+                  onClick={() => setMeniuDeschis(false)}
+                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+                >
+                  Documente
+                </Link>
+
+                {userRole ? (
+                  <button
+                    onClick={handleLogout}
+                    className="mt-3 rounded-xl bg-red-500 px-4 py-3 font-semibold text-white"
+                  >
+                    Ieși
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMeniuDeschis(false);
+                      handleLoginClick();
+                    }}
+                    className="mt-3 rounded-xl bg-yellow-400 px-4 py-3 font-bold text-black"
+                  >
+                    Conectează-te
+                  </button>
+                )}
+              </div>
+            </motion.div>
           )}
-        </div>
-      )}
-    </nav>
+        </AnimatePresence>
+      </nav>
+    </>
   );
 }
 

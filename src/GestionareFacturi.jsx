@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
+import mockApi from './api/mockApi';
 
 function GestionareFacturi() {
   const [facturi, setFacturi] = useState([]);
@@ -8,17 +9,10 @@ function GestionareFacturi() {
   const [eroare, setEroare] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/facturi')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setFacturi(data);
-        } else {
-          setEroare('Format date invalid de la server.');
-        }
-      })
-      .catch(() => setEroare('Nu pot încărca facturile de la server.'))
-      .finally(() => setLoading(false));
+    mockApi.getInvoices().then((data) => {
+      if (Array.isArray(data)) setFacturi(data);
+      else setEroare('Format date invalid de la server.');
+    }).catch(() => setEroare('Nu pot încărca facturile de la server.')).finally(() => setLoading(false));
   }, []);
 
   return (

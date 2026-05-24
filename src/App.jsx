@@ -1,6 +1,11 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react'; 
+import mockApi from './api/mockApi';
 import Dashboard from './Dashboard';
+import Home from './Home';
+import Login from './Login';
+import ProtectedRoute from './ProtectedRoute';
+import { AuthProvider } from './AuthContext';
 import AdaugaChirias from './AdaugaChirias';
 import AdaugaFactura from './AdaugaFactura';
 import GestionareFacturi from './GestionareFacturi';
@@ -8,33 +13,27 @@ import GestionareMentenanta from './GestionareMentenanta';
 import GestionareDocumente from './GestionareDocumente';
 import Contact from './Contact';
 import RaporteazaProblema from './RaporteazaProblema';
+import ManagerDashboard from './ManagerDashboard';
+import ChiriasDashboard from './ChiriasDashboard';
+import TenantsList from './manager/TenantsList';
+import TenantDetails from './manager/TenantDetails';
+import ChiriasInvoices from './chirias/Invoices';
+import ChiriasDocuments from './chirias/Documents';
+import ChiriasMaintenance from './chirias/Maintenance';
 
 function App() {
   const [mesajServer, setMesajServer] = useState('Se încarcă...');
   const [chiriasi, setChiriasi] = useState([]);
 
   useEffect(() => {
-    
-    fetch('http://localhost:5001/api/test')
-      .then(response => response.json())
-      .then(data => setMesajServer(data.mesaj))
-      .catch(error => setMesajServer("Nu mă pot conecta la server!"));
-
-    
-    fetch('http://localhost:5001/api/chiriasi')
-      .then(response => response.json())
-      .then(data => {
-        console.log("Datele primite de la server:", data); // Mesaj de control
-        setChiriasi(data);
-      })
-      .catch(error => {
-        console.error("Eroare la aducerea chiriașilor:", error);
-      });
+    mockApi.initMock();
+    mockApi.getTenants().then((data) => setChiriasi(data)).catch(() => setChiriasi([]));
   }, []);
 
   const adaugaChirias = (nou) => {
     setChiriasi([...chiriasi, { id: Date.now(), ...nou }]);
   };
+
 
   return (
     <div className="App">
@@ -43,20 +42,117 @@ function App() {
          <strong>Status Server: </strong> <span style={{color: 'blue'}}>{mesajServer}</span>
       </div>
 
-      <BrowserRouter>
-        <Routes>
-          {/* Trimitem lista 'chiriasi' către pagina Dashboard */}
-          <Route path="/" element={<Dashboard chiriasi={chiriasi} />} />
-          
-          <Route path="/adauga-chirias" element={<AdaugaChirias adaugaChirias={adaugaChirias} />} />
-          <Route path="/adauga-factura" element={<AdaugaFactura />} />
-          <Route path="/facturi" element={<GestionareFacturi />} />
-          <Route path="/mentenanta" element={<GestionareMentenanta />} />
-          <Route path="/documente" element={<GestionareDocumente />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/raporteaza-problema" element={<RaporteazaProblema />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Home with Navbar + Hero */}
+            <Route path="/" element={<Home />} />
+
+            {/* Public pages */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/contact" element={<Contact />} />
+
+            {/* Redirects to dashboard paths */}
+            <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
+
+            <Route
+              path="/manager/tenants"
+              element={
+                <ProtectedRoute allowedRoles={["manager"]}>
+                  <TenantsList />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/manager/tenants/:id"
+              element={
+                <ProtectedRoute allowedRoles={["manager"]}>
+                  <TenantDetails />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="/chirias" element={<Navigate to="/chirias/dashboard" replace />} />
+
+            {/* Protected role-based dashboards */}
+            <Route
+              path="/manager/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["manager"]}>
+                  <ManagerDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/chirias/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["chirias"]}>
+                  <ChiriasDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/chirias/invoices"
+              element={
+                <ProtectedRoute allowedRoles={["chirias"]}>
+                  <ChiriasInvoices />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/chirias/documents"
+              element={
+                <ProtectedRoute allowedRoles={["chirias"]}>
+                  <ChiriasDocuments />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/chirias/maintenance"
+              element={
+                <ProtectedRoute allowedRoles={["chirias"]}>
+                  <ChiriasMaintenance />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Legacy / shared dashboard (optional) */}
+            <Route path="/dashboard" element={<Dashboard chiriasi={chiriasi} />} />
+            <Route path="/adauga-chirias" element={<AdaugaChirias adaugaChirias={adaugaChirias} />} />
+            <Route path="/adauga-factura" element={<AdaugaFactura />} />
+            <Route
+              path="/facturi"
+              element={
+                <ProtectedRoute allowedRoles={["manager"]}>
+                  <GestionareFacturi />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mentenanta"
+              element={
+                <ProtectedRoute allowedRoles={["manager"]}>
+                  <GestionareMentenanta />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documente"
+              element={
+                <ProtectedRoute allowedRoles={["manager"]}>
+                  <GestionareDocumente />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/raporteaza-problema" element={<RaporteazaProblema />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </div>
   );
 }

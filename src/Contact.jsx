@@ -21,26 +21,17 @@ function Contact() {
     setEroare('');
 
     try {
-      const response = await fetch('http://localhost:5001/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nume, email, subiect, mesaj }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
+      // Frontend-only: simulate success
+      setTimeout(() => {
         setSucces('Mesajul a fost trimis cu succes! Te vom contacta în curând.');
         setNume('');
         setEmail('');
         setSubiect('');
         setMesaj('');
-      } else {
-        setEroare('Eroare la trimitere: ' + (result.error || ''));
-      }
+        setLoading(false);
+      }, 700);
     } catch (err) {
       setEroare('Nu mă pot conecta la server: ' + err.message);
-    } finally {
       setLoading(false);
     }
   };

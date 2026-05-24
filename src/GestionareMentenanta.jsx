@@ -9,17 +9,10 @@ function GestionareMentenanta() {
 
   const incarcaCereri = () => {
     setLoading(true);
-    fetch('http://localhost:5001/api/mentenanta')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setCereri(data);
-        } else {
-          setEroare('Datele de la server nu sunt în formatul așteptat.');
-        }
-      })
-      .catch(() => setEroare('Nu am putut încărca cererile.'))
-      .finally(() => setLoading(false));
+    import('./api/mockApi').then(m => m.getMaintenance()).then((data) => {
+      if (Array.isArray(data)) setCereri(data);
+      else setEroare('Datele de la server nu sunt în formatul așteptat.');
+    }).catch(() => setEroare('Nu am putut încărca cererile.')).finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -28,14 +21,9 @@ function GestionareMentenanta() {
 
   const schimbaStatus = async (id, statusNou) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/mentenanta/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: statusNou }),
-      });
-      if (res.ok) {
-        incarcaCereri(); 
-      }
+      const { updateMaintenanceStatus } = await import('./api/mockApi');
+      await updateMaintenanceStatus(id, statusNou);
+      incarcaCereri();
     } catch (err) {
       alert("Nu am putut actualiza statusul.");
     }
@@ -76,10 +64,7 @@ function GestionareMentenanta() {
                       {cerere.poza && (
                         <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
                           <img 
-                            src={`http://localhost:5001${cerere.poza}`} 
-                            alt="Problema" 
-                            className="h-full w-full object-cover"
-                            onError={(e) => e.target.style.display='none'} // Ascunde dacă imaginea nu se încarcă
+                            src={cerere.poza || ''} 
                           />
                         </div>
                       )}

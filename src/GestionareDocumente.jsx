@@ -10,10 +10,9 @@ function GestionareDocumente() {
 
   useEffect(() => {
     Promise.all([
-      fetch('http://localhost:5001/api/documente'),
-      fetch('http://localhost:5001/api/chiriasi')
+      import('./api/mockApi').then(m => m.getDocuments()),
+      import('./api/mockApi').then(m => m.getTenants())
     ])
-      .then(([resDoc, resChir]) => Promise.all([resDoc.json(), resChir.json()]))
       .then(([dataDoc, dataChir]) => {
         if (Array.isArray(dataDoc)) setDocumente(dataDoc);
         if (Array.isArray(dataChir)) setChiriasi(dataChir);
@@ -27,17 +26,9 @@ function GestionareDocumente() {
     if (!confirmare) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/documente/${id}`, {
-        method: 'DELETE',
-      });
-      const result = await response.json();
-      
-      if (result.success) {
-    
-        setDocumente(documente.filter((doc) => doc.id !== id));
-      } else {
-        alert("Eroare la ștergere: " + result.error);
-      }
+      const { deleteDocument } = await import('./api/mockApi');
+      await deleteDocument(id);
+      setDocumente(documente.filter((doc) => doc.id !== id));
     } catch (err) {
       alert("Nu am putut contacta serverul: " + err.message);
     }
@@ -137,7 +128,7 @@ function GestionareDocumente() {
                           
                           {/* BUTON NOU DE DESCĂRCARE */}
                           <a 
-                            href={`http://localhost:5001${document.cale}`} 
+                            href={document.cale || '#'} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -145,7 +136,6 @@ function GestionareDocumente() {
                             Deschide
                           </a>
                           
-                          {}
                           <button 
                             onClick={() => stergeDocument(document.id)}
                             className="rounded-2xl bg-red-100 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-200"

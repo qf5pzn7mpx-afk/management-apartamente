@@ -14,10 +14,7 @@ function AdaugaFactura() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/chiriasi')
-      .then(res => res.json())
-      .then(data => setChiriasi(data))
-      .catch(() => setEroare('Nu pot încărca lista de chiriași.'));
+    import('./api/mockApi').then(({ getTenants }) => getTenants().then((data) => setChiriasi(data))).catch(() => setEroare('Nu pot încărca lista de chiriași.'));
   }, []);
 
   const handleSave = async () => {
@@ -27,27 +24,11 @@ function AdaugaFactura() {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/facturi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chirias_id: parseInt(chiriasId),
-          suma: parseFloat(suma),
-          tip,
-          data_emiterii: dataEmiterii,
-          data_scadentei: dataScadentei,
-          status: 'Neplătită',
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setSucces('Factura a fost salvată cu succes!');
-        setTimeout(() => navigate('/facturi'), 1500);
-      } else {
-        setEroare('Eroare la salvare: ' + (result.error || ''));
-      }
+      const payload = { chirias_id: parseInt(chiriasId), suma: parseFloat(suma), tip, data_emiterii: dataEmiterii, data_scadentei: dataScadentei, status: 'Neplătită' };
+      const { addInvoice } = await import('./api/mockApi');
+      await addInvoice(payload);
+      setSucces('Factura a fost salvată cu succes!');
+      setTimeout(() => navigate('/facturi'), 1500);
     } catch (err) {
       setEroare('Nu mă pot conecta la server: ' + err.message);
     }

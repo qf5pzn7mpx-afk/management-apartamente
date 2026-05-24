@@ -1,7 +1,9 @@
+
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import logo from './assets/logo.png';
 import Navbar from './Navbar';
+import mockApi from './api/mockApi';
 
 function Dashboard() {
   const [meniuDeschis, setMeniuDeschis] = useState(false);
@@ -10,34 +12,19 @@ function Dashboard() {
 
   // Încarcă chiriașii din server
   useEffect(() => {
-    fetch('http://localhost:5001/api/chiriasi')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setChiriasi(data);
-        else setEroare('Format date invalid de la server.');
-      })
-      .catch((err) => setEroare('Eroare reală: ' + err.message));
+    mockApi.getTenants().then((data) => setChiriasi(data)).catch(() => setChiriasi([]));
   }, []);
 
   const stergeChirias = async (id) => {
     const confirmare = window.confirm("Sigur vrei să ștergi acest chiriaș?");
     if (!confirmare) return;
 
-    try {
-      const response = await fetch(`http://localhost:5001/api/chiriasi/${id}`, {
-        method: 'DELETE',
-      });
-      const result = await response.json();
-      
-      if (result.success) {
-        // Actualizăm lista de pe ecran eliminând chiriașul șters
-        setChiriasi(chiriasi.filter((ch) => ch.id !== id));
-      } else {
-        alert("Eroare la ștergere: " + (result.error || "Necunoscută"));
+      try {
+        await mockApi.deleteTenant(id);
+        setChiriasi((s) => s.filter((c) => c.id !== id));
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      alert("Eroare la ștergere: " + err.message);
-    }
   };
 
   const features = [

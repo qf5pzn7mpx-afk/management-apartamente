@@ -32,19 +32,21 @@ function RaporteazaProblema() {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/mentenanta', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert('Problema a fost raportată cu succes!');
-        navigate('/');
-      } else {
-        alert('Eroare de la server: ' + result.error);
-      }
+      // Use mock API instead of uploading
+      const payload = {
+        titlu,
+        descriere,
+        status: 'Nouă',
+        chirias_id: 1,
+        apartament_id: 1,
+        urgenta,
+        poza: poza ? poza.name : null,
+      };
+      // lazy import mockApi to avoid circulars
+      const { addMaintenance } = await import('./api/mockApi');
+      await addMaintenance(payload);
+      alert('Problema a fost raportată cu succes!');
+      navigate('/');
     } catch (err) {
       alert('Nu s-a putut contacta serverul: ' + err.message);
     } finally {

@@ -7,11 +7,10 @@ html {
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  background-color: #1f1f1f;
+   margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: #0f172a;
   color: white;
-  font-family: Inter, Arial, Helvetica, sans-serif;
 }
 
 * {

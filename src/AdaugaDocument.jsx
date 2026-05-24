@@ -16,12 +16,7 @@ function AdaugaDocument() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/chiriasi')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setChiriasi(data);
-      })
-      .catch(() => setEroare('Nu pot încărca lista chiriașilor'));
+    import('./api/mockApi').then(({ getTenants }) => getTenants().then((data) => { if (Array.isArray(data)) setChiriasi(data); })).catch(() => setEroare('Nu pot încărca lista chiriașilor'));
   }, []);
 
   const handleSave = async () => {
@@ -41,21 +36,13 @@ function AdaugaDocument() {
     formData.append('fisier', fisier);
 
     try {
-      const response = await fetch('http://localhost:5001/api/documente', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setSucces(true);
-        setTimeout(() => {
-          navigate('/documente');
-        }, 1500);
-      } else {
-        setEroare('Eroare: ' + (result.error || 'Nu s-a putut salva documentul'));
-      }
+      const payload = { nume_fisier: numeDocument, tip: tipDocument, chirias_id: chiriasId, fisier: fisier ? fisier.name : null };
+      const { addDocument } = await import('./api/mockApi');
+      await addDocument(payload);
+      setSucces(true);
+      setTimeout(() => {
+        navigate('/documente');
+      }, 1500);
     } catch (err) {
       setEroare('Eroare de conexiune: ' + err.message);
     } finally {

@@ -17,22 +17,9 @@ function AdaugaChirias() {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/chiriasi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nume: nume,
-          apartament_id: ap,
-          email: email,
-          telefon: telefon
-        }),
-      });
-
-      if (response.ok) {
-        navigate('/');
-      } else {
-        setEroare('Eroare la salvarea chiriașului.');
-      }
+      const { addTenant } = await import('./api/mockApi');
+      await addTenant({ nume: nume, apartament_id: ap, email: email, telefon: telefon });
+      navigate('/');
     } catch (err) {
       setEroare('Nu mă pot conecta la server: ' + err.message);
     }
