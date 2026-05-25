@@ -1,39 +1,107 @@
+import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { motion } from 'framer-motion';
+import { useContext, useEffect, useState } from 'react';
+import { AuthContext } from './AuthContext';
+import mockApi from './api/mockApi';
+import InvoiceBreakdown from './components/InvoiceBreakdown';
 
-function ChiriasDashboard() {
+function SmallCard({ title, value, hint }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12">
-        <motion.section initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: 'easeOut' }} className="rounded-[32px] border border-white/10 bg-slate-900/80 p-10 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
-          <div className="mb-12 space-y-4">
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-300/80">Chiriaș Dashboard</p>
-            <h1 className="text-4xl font-semibold text-white">Bine ai venit, Chiriaș</h1>
-            <p className="max-w-3xl text-slate-300 leading-8">Urmărește facturile, trimite cereri de mentenanță și accesează documentele importante dintr-un singur loc.</p>
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
-            <div className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-lg shadow-emerald-500/5">
-              <p className="text-sm uppercase tracking-[0.25em] text-emerald-200/80">Facturi</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white">5</h2>
-              <p className="mt-2 text-sm text-slate-400">Facturi restante și în curs</p>
-            </div>
-            <div className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-lg shadow-lime-500/5">
-              <p className="text-sm uppercase tracking-[0.25em] text-lime-200/80">Mentenanță</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white">1</h2>
-              <p className="mt-2 text-sm text-slate-400">Raportare deschisă</p>
-            </div>
-            <div className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-lg shadow-teal-500/5">
-              <p className="text-sm uppercase tracking-[0.25em] text-teal-200/80">Documente</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white">Shuffle</h2>
-              <p className="mt-2 text-sm text-slate-400">Accesează contracte și chitanțe</p>
-            </div>
-          </div>
-        </motion.section>
-      </main>
+    <div className="rounded-2xl bg-slate-900/60 p-4 border border-white/6">
+      <p className="text-xs text-slate-400">{title}</p>
+      <div className="mt-2 flex items-baseline justify-between">
+        <div className="text-xl font-semibold text-white">{value}</div>
+        <div className="text-xs text-slate-300">{hint}</div>
+      </div>
     </div>
   );
 }
 
-export default ChiriasDashboard;
+export default function ChiriasDashboard() {
+  const { user } = useContext(AuthContext) || {};
+  const [invoices, setInvoices] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+    mockApi.getInvoices({ tenantId: user.id }).then((data) => setInvoices(data)).catch(() => setInvoices([]));
+  }, [user]);
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white">
+      <Navbar />
+      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-8">
+        <Sidebar role="chirias" />
+
+        <main className="flex-1">
+          <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold">Bun venit, {user?.name || 'Chiriaș'}</h1>
+              <p className="text-sm text-slate-400">Panoul tău personal</p>
+            </div>
+          </motion.header>
+
+          <section className="grid gap-4 sm:grid-cols-3">
+            <SmallCard title="Facturi restante" value={invoices.filter(i => i.status !== 'Plătită').length} hint="Vezi detalii" />
+            <SmallCard title="Cereri mentenanță" value={1} hint="Trimite o nouă cerere" />
+            <SmallCard title="Documente" value={3} hint="Vezi contractele" />
+          </section>
+
+          <section className="mt-8 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl bg-slate-900/60 p-6 border border-white/6">
+              <h3 className="text-lg font-semibold">Facturi recente</h3>
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-sm text-slate-400">
+                      <th className="px-3 py-2">#</th>
+                      <th className="px-3 py-2">Sumă</th>
+                      <th className="px-3 py-2">Dată</th>
+                      <th className="px-3 py-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/6">
+                    {invoices.slice(0, 8).map((f) => (
+                      <tr key={f.id} className="hover:bg-white/2">
+                        <td className="px-3 py-3">{f.id}</td>
+                        <td className="px-3 py-3">{f.amount || f.suma || '—'}</td>
+                        <td className="px-3 py-3">{f.data_emiterii || f.data || '—'}</td>
+                        <td className="px-3 py-3 text-sm text-slate-300">{f.status || 'Neplătită'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="rounded-2xl bg-slate-900/60 p-6 border border-white/6">
+                <h3 className="text-lg font-semibold">Plăți: Plătite vs Neplătite</h3>
+                <p className="text-sm text-slate-400">Vizualizare rapidă</p>
+                <div className="mt-4 max-w-sm">
+                  <InvoiceBreakdown />
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-slate-900/60 p-6 border border-white/6">
+                <h3 className="text-lg font-semibold">Cereri mentenanță</h3>
+                <p className="text-sm text-slate-400 mt-2">Urmărește statusul cererilor tale.</p>
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-md bg-slate-800/40 p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-semibold">Robinet scurgeri</div>
+                        <div className="text-xs text-slate-400">Trimis acum 2 zile</div>
+                      </div>
+                      <div className="text-xs text-amber-400">Nouă</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}

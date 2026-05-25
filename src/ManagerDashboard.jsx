@@ -1,39 +1,108 @@
 import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import mockApi from './api/mockApi';
+import RevenueChart from './components/RevenueChart';
+import MaintenanceChart from './components/MaintenanceChart';
+import InvoiceBreakdown from './components/InvoiceBreakdown';
 
-function ManagerDashboard() {
+function StatCard({ title, value, subtitle, color = 'bg-indigo-600' }) {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12">
-        <motion.section initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: 'easeOut' }} className="rounded-[32px] border border-white/10 bg-slate-900/80 p-10 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
-          <div className="mb-12 space-y-4">
-            <p className="text-sm uppercase tracking-[0.3em] text-sky-300/80">Manager Dashboard</p>
-            <h1 className="text-4xl font-semibold text-white">Bine ai venit, Manager</h1>
-            <p className="max-w-3xl text-slate-300 leading-8">Controlează proprietățile, monitorizează cererile de mentenanță și gestionează chiriașii de pe un singur panou modern.</p>
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
-            <div className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-lg shadow-sky-500/5">
-              <p className="text-sm uppercase tracking-[0.25em] text-sky-200/80">Rezumat rapid</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white">12</h2>
-              <p className="mt-2 text-sm text-slate-400">Cereri de mentenanță active</p>
-            </div>
-            <div className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-lg shadow-cyan-500/5">
-              <p className="text-sm uppercase tracking-[0.25em] text-cyan-200/80">Venit luna aceasta</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white">32.400 lei</h2>
-              <p className="mt-2 text-sm text-slate-400">Facturi în curs de procesare</p>
-            </div>
-            <div className="rounded-3xl border border-slate-700/80 bg-slate-950/80 p-6 shadow-lg shadow-violet-500/5">
-              <p className="text-sm uppercase tracking-[0.25em] text-violet-200/80">Chiriași</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white">24</h2>
-              <p className="mt-2 text-sm text-slate-400">Utilizatori conectați în prezent</p>
-            </div>
-          </div>
-        </motion.section>
-      </main>
+    <div className="rounded-2xl bg-slate-900/60 p-5 border border-white/6 shadow-sm">
+      <p className="text-xs uppercase tracking-wider text-slate-400">{title}</p>
+      <div className="mt-2 flex items-baseline justify-between gap-4">
+        <h3 className="text-2xl font-bold text-white">{value}</h3>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold text-white ${color}`}>Live</span>
+      </div>
+      <p className="mt-2 text-sm text-slate-400">{subtitle}</p>
     </div>
   );
 }
 
-export default ManagerDashboard;
+export default function ManagerDashboard() {
+  const [tenants, setTenants] = useState([]);
+
+  useEffect(() => {
+    mockApi.getTenants().then((data) => setTenants(data)).catch(() => setTenants([]));
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white">
+      <Navbar />
+      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-8">
+        <Sidebar role="manager" />
+
+        <main className="flex-1">
+          <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold">Manager Dashboard</h1>
+              <p className="text-sm text-slate-400">Gestionează chiriași, facturi și mentenanță</p>
+            </div>
+          </motion.header>
+
+          <section className="grid gap-4 md:grid-cols-3">
+            <StatCard title="Chiriași" value={tenants.length} subtitle="Total chiriași înregistrați" color="bg-indigo-600" />
+            <StatCard title="Mentenanță" value="12" subtitle="Cereri active" color="bg-amber-500" />
+            <StatCard title="Venit (Luna)" value="32.400 RON" subtitle="Estimare veniturilor" color="bg-emerald-500" />
+          </section>
+
+          <section className="mt-8 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl bg-slate-900/60 p-6 border border-white/6">
+              <h3 className="text-lg font-semibold">Analiză venituri</h3>
+              <p className="text-sm text-slate-400">Grafic lună curentă</p>
+              <div className="mt-4">
+                <RevenueChart months={6} />
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-slate-900/60 p-6 border border-white/6">
+              <h3 className="text-lg font-semibold">Cereri de mentenanță</h3>
+              <p className="text-sm text-slate-400">Distribuție pe status</p>
+              <div className="mt-4">
+                <MaintenanceChart />
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-6">
+            <div className="rounded-2xl bg-slate-900/60 p-6 border border-white/6">
+              <h3 className="text-lg font-semibold">Plăți: Plătite vs Neplătite</h3>
+              <div className="mt-4 max-w-sm">
+                <InvoiceBreakdown />
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-8">
+            <div className="rounded-2xl bg-slate-900/60 p-6 border border-white/6">
+              <h3 className="text-lg font-semibold">Tabel chiriași</h3>
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full table-auto text-left">
+                  <thead>
+                    <tr className="text-sm text-slate-400">
+                      <th className="px-3 py-2">Nume</th>
+                      <th className="px-3 py-2">Apartament</th>
+                      <th className="px-3 py-2">Email</th>
+                      <th className="px-3 py-2">Telefon</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/6">
+                    {tenants.slice(0, 10).map((t) => (
+                      <tr key={t.id} className="hover:bg-white/2">
+                        <td className="px-3 py-3">{t.nume || t.name}</td>
+                        <td className="px-3 py-3">{t.apartament_id || t.apartament_numar || '—'}</td>
+                        <td className="px-3 py-3 text-slate-300">{t.email || '—'}</td>
+                        <td className="px-3 py-3 text-slate-300">{t.telefon || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
