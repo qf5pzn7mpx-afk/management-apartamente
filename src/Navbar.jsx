@@ -3,14 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from './AuthContext';
 
-function Navbar() {
+function Navbar({ onSearch, onFilter }) {
   const [meniuDeschis, setMeniuDeschis] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('');
 
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext) || {};
   const userRole = user?.role;
 
-  const roleLabel = userRole === 'manager' ? 'Manager' : userRole === 'chirias' ? 'Chiriaș' : null;
+  const roleLabel =
+    userRole === 'manager'
+      ? 'Manager'
+      : userRole === 'chirias'
+      ? 'Chiriaș'
+      : null;
 
   const handleLogout = () => {
     logout();
@@ -22,12 +29,24 @@ function Navbar() {
     navigate('/login');
   };
 
+  const handleSearch = () => {
+    if (onSearch) {
+      onSearch(searchTerm);
+    }
+  };
+
+  const handleFilterChange = (event) => {
+    setFilter(event.target.value);
+
+    if (onFilter) {
+      onFilter(event.target.value);
+    }
+  };
+
   return (
     <>
       <nav className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          
-          {/* LOGO */}
           <Link to="/" className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-400 shadow-md">
               <svg
@@ -50,14 +69,41 @@ function Navbar() {
               <h1 className="text-xl font-extrabold tracking-wide text-white">
                 ApartManager
               </h1>
-              <p className="text-xs tracking-[0.25em] text-slate-400 uppercase">
+              <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
                 Property Management
               </p>
             </div>
           </Link>
 
-          {/* DESKTOP MENU */}
-          <div className="hidden items-center gap-6 md:flex">
+          <div className="hidden items-center gap-4 md:flex">
+            <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Caută chiriași..."
+                className="bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
+              />
+
+              <button
+                onClick={handleSearch}
+                className="rounded-lg bg-yellow-400 px-3 py-1 text-sm font-semibold text-black transition hover:bg-yellow-300"
+              >
+                Caută
+              </button>
+            </div>
+
+            <select
+              value={filter}
+              onChange={handleFilterChange}
+              className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none"
+            >
+              <option value="">Toate</option>
+              <option value="status_paid">Plătite</option>
+              <option value="status_unpaid">Neplătite</option>
+              <option value="status_pending">În așteptare</option>
+            </select>
+
             <Link
               to="/"
               className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
@@ -65,7 +111,6 @@ function Navbar() {
               Acasă
             </Link>
 
-            {/* Role-specific dashboard link */}
             {userRole === 'manager' && (
               <Link
                 to="/manager/dashboard"
@@ -137,7 +182,6 @@ function Navbar() {
             )}
           </div>
 
-          {/* MOBILE BUTTON */}
           <button
             onClick={() => setMeniuDeschis(!meniuDeschis)}
             className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-400 text-black shadow-md md:hidden"
@@ -158,7 +202,6 @@ function Navbar() {
           </button>
         </div>
 
-        {/* MOBILE MENU */}
         <AnimatePresence>
           {meniuDeschis && (
             <motion.div
@@ -168,6 +211,34 @@ function Navbar() {
               transition={{ duration: 0.25 }}
               className="border-t border-slate-800 bg-slate-950 px-6 py-5 md:hidden"
             >
+              <div className="mb-4 flex flex-col gap-3">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Caută..."
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                />
+
+                <select
+                  value={filter}
+                  onChange={handleFilterChange}
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                >
+                  <option value="">Toate</option>
+                  <option value="status_paid">Plătite</option>
+                  <option value="status_unpaid">Neplătite</option>
+                  <option value="status_pending">În așteptare</option>
+                </select>
+
+                <button
+                  onClick={handleSearch}
+                  className="rounded-xl bg-yellow-400 px-4 py-3 font-bold text-black"
+                >
+                  Caută
+                </button>
+              </div>
+
               <div className="flex flex-col gap-3">
                 <Link
                   to="/"
@@ -178,11 +249,23 @@ function Navbar() {
                 </Link>
 
                 {userRole === 'manager' && (
-                  <Link to="/manager/dashboard" onClick={() => setMeniuDeschis(false)} className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800">Panou Manager</Link>
+                  <Link
+                    to="/manager/dashboard"
+                    onClick={() => setMeniuDeschis(false)}
+                    className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+                  >
+                    Panou Manager
+                  </Link>
                 )}
 
                 {userRole === 'chirias' && (
-                  <Link to="/chirias/dashboard" onClick={() => setMeniuDeschis(false)} className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800">Panou Chiriaș</Link>
+                  <Link
+                    to="/chirias/dashboard"
+                    onClick={() => setMeniuDeschis(false)}
+                    className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+                  >
+                    Panou Chiriaș
+                  </Link>
                 )}
 
                 <Link

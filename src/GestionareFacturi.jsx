@@ -8,98 +8,282 @@ function GestionareFacturi() {
   const [loading, setLoading] = useState(true);
   const [eroare, setEroare] = useState('');
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  const [paginaCurenta, setPaginaCurenta] = useState(1);
+  const facturiPerPagina = 5;
+
   useEffect(() => {
-    mockApi.getInvoices().then((data) => {
-      if (Array.isArray(data)) setFacturi(data);
-      else setEroare('Format date invalid de la server.');
-    }).catch(() => setEroare('Nu pot încărca facturile de la server.')).finally(() => setLoading(false));
+    mockApi
+      .getInvoices()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setFacturi(data);
+        } else {
+          setEroare('Format date invalid.');
+        }
+      })
+      .catch(() => {
+        setEroare('Nu pot încărca facturile.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
+  const facturiFiltrate = facturi.filter((factura) => {
+    const matchesSearch =
+      factura.chirias_nume
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      factura.id?.toString().includes(searchTerm);
+
+    const matchesStatus = statusFilter
+      ? factura.status === statusFilter
+      : true;
+
+    const dataFactura = factura.data_emiterii
+      ? new Date(factura.data_emiterii)
+      : null;
+
+    const matchesStart =
+      startDate && dataFactura
+        ? dataFactura >= new Date(startDate)
+        : true;
+
+    const matchesEnd =
+      endDate && dataFactura
+        ? dataFactura <= new Date(endDate)
+        : true;
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesStart &&
+      matchesEnd
+    );
+  });
+
+  const indexUltimaFactura =
+    paginaCurenta * facturiPerPagina;
+
+  const indexPrimaFactura =
+    indexUltimaFactura - facturiPerPagina;
+
+  const facturiCurente = facturiFiltrate.slice(
+    indexPrimaFactura,
+    indexUltimaFactura
+  );
+
+  const totalPagini = Math.ceil(
+    facturiFiltrate.length / facturiPerPagina
+  );
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       <Navbar />
-      <div className="py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+      <div className="px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+
+          <div className="mb-8 rounded-[32px] border border-slate-800 bg-slate-900 p-8 shadow-2xl">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-indigo-600">Gestionare facturi</p>
-                <h1 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">Toate facturile tale într-un singur loc</h1>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                  Vizualizează facturile, urmărește statusul și adaugă rapid o nouă factură cu un singur click.
+                <p className="text-sm uppercase tracking-[0.3em] text-yellow-400">
+                  Gestionare Facturi
+                </p>
+
+                <h1 className="mt-3 text-4xl font-bold text-white">
+                  Facturi și plăți
+                </h1>
+
+                <p className="mt-4 max-w-2xl text-slate-400">
+                  Caută, filtrează și administrează toate
+                  facturile chiriașilor într-un singur loc.
                 </p>
               </div>
+
               <Link
                 to="/adauga-factura"
-                className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700"
+                className="inline-flex items-center justify-center rounded-2xl bg-yellow-400 px-6 py-4 text-sm font-bold text-black transition hover:scale-105"
               >
-                + Adaugă factură
+                + Adaugă Factură
               </Link>
             </div>
           </div>
 
-          <div className="space-y-6">
-            {eroare && (
-              <div className="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-                {eroare}
+          <div className="mb-8 grid gap-4 rounded-[32px] border border-slate-800 bg-slate-900 p-6 md:grid-cols-4">
+
+            <input
+              type="text"
+              placeholder="Caută chiriaș sau ID..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPaginaCurenta(1);
+              }}
+              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
+            />
+
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPaginaCurenta(1);
+              }}
+              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
+            >
+              <option value="">Toate statusurile</option>
+              <option value="Plătită">Plătită</option>
+              <option value="Neplătită">Neplătită</option>
+              <option value="În așteptare">În așteptare</option>
+            </select>
+
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setPaginaCurenta(1);
+              }}
+              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
+            />
+
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setPaginaCurenta(1);
+              }}
+              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
+            />
+          </div>
+
+          {eroare && (
+            <div className="mb-6 rounded-2xl border border-red-500 bg-red-500/10 px-5 py-4 text-red-300">
+              {eroare}
+            </div>
+          )}
+
+          <div className="rounded-[32px] border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white">
+                  Lista Facturilor
+                </h2>
+
+                <p className="mt-1 text-slate-400">
+                  {facturiFiltrate.length} facturi găsite
+                </p>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="py-20 text-center text-slate-400">
+                Se încarcă facturile...
+              </div>
+            ) : facturiCurente.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-800/50 p-12 text-center text-slate-400">
+                Nu există facturi.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-left">
+                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
+                        Factură
+                      </th>
+
+                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
+                        Chiriaș
+                      </th>
+
+                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
+                        Sumă
+                      </th>
+
+                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
+                        Emisă
+                      </th>
+
+                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
+                        Scadență
+                      </th>
+
+                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {facturiCurente.map((factura) => (
+                      <tr
+                        key={factura.id}
+                        className="border-b border-slate-800 transition hover:bg-slate-800/50"
+                      >
+                        <td className="px-4 py-5 text-white">
+                          #{factura.id}
+                        </td>
+
+                        <td className="px-4 py-5 text-slate-300">
+                          {factura.chirias_nume || '—'}
+                        </td>
+
+                        <td className="px-4 py-5 font-semibold text-yellow-400">
+                          {factura.suma || 0} RON
+                        </td>
+
+                        <td className="px-4 py-5 text-slate-300">
+                          {factura.data_emiterii || '—'}
+                        </td>
+
+                        <td className="px-4 py-5 text-slate-300">
+                          {factura.data_scadentei || '—'}
+                        </td>
+
+                        <td className="px-4 py-5">
+                          <span className="rounded-full bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-300">
+                            {factura.status || 'Neplătită'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
-            <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900">Lista facturilor</h2>
-                  <p className="mt-1 text-sm text-slate-500">Ultimele facturi emise și statusul lor actual.</p>
-                </div>
-                <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
-                  {loading ? 'Se încarcă...' : `${facturi.length} facturi`}
-                </span>
-              </div>
+            {totalPagini > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-3">
 
-              {loading ? (
-                <div className="mt-8 text-center text-slate-500">Se încarcă facturile…</div>
-              ) : facturi.length === 0 ? (
-                <div className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-600">
-                  Nu există facturi înregistrate încă.
-                </div>
-              ) : (
-                <div className="mt-6 space-y-4">
-                  {facturi.map((factura) => (
-                    <div
-                      key={factura.id}
-                      className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                {Array.from(
+                  { length: totalPagini },
+                  (_, index) => (
+                    <button
+                      key={index}
+                      onClick={() =>
+                        setPaginaCurenta(index + 1)
+                      }
+                      className={`h-11 w-11 rounded-xl font-semibold transition ${
+                        paginaCurenta === index + 1
+                          ? 'bg-yellow-400 text-black'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      }`}
                     >
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">Factura #{factura.id || '—'}</p>
-                          <p className="mt-1 text-sm text-slate-600">Chiriaș: {factura.chirias_nume || factura.chirias_id || '—'}</p>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                          <span>Status: <span className="font-semibold text-slate-900">{factura.status || 'Neplătită'}</span></span>
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
-                            {factura.tip || 'Chirie'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Sumă</p>
-                          <p className="mt-2 text-lg font-semibold text-slate-900">{factura.suma ? factura.suma + ' RON' : '—'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Emisă</p>
-                          <p className="mt-2 text-sm text-slate-700">{factura.data_emiterii || '—'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Scadentă</p>
-                          <p className="mt-2 text-sm text-slate-700">{factura.data_scadentei || '—'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                      {index + 1}
+                    </button>
+                  )
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
