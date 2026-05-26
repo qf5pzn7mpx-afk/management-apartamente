@@ -4,6 +4,7 @@ import mockApi from './api/mockApi';
 import Dashboard from './Dashboard';
 import Home from './Home';
 import Login from './Login';
+import Register from './Register'; 
 import ProtectedRoute from './ProtectedRoute';
 import { AuthProvider } from './AuthContext';
 import AdaugaChirias from './AdaugaChirias';
@@ -26,20 +27,29 @@ function App() {
   const [chiriasi, setChiriasi] = useState([]);
 
   useEffect(() => {
+    
     mockApi.initMock();
     mockApi.getTenants().then((data) => setChiriasi(data)).catch(() => setChiriasi([]));
+
+    
+    fetch('http://localhost:5001/api/test')
+      .then(res => res.json())
+      .then(data => setMesajServer(data.mesaj)) 
+      .catch(() => setMesajServer('Eroare: Serverul backend este oprit.'));
   }, []);
 
   const adaugaChirias = (nou) => {
     setChiriasi([...chiriasi, { id: Date.now(), ...nou }]);
   };
 
-
   return (
     <div className="App">
       {/* Bara de status */}
       <div style={{ padding: '10px', backgroundColor: '#e0f7fa', textAlign: 'center', marginBottom: '20px', borderRadius: '8px' }}>
-         <strong>Status Server: </strong> <span style={{color: 'blue'}}>{mesajServer}</span>
+         <strong>Status Server: </strong> 
+         <span style={{color: mesajServer.includes('Eroare') ? 'red' : 'blue'}}>
+           {mesajServer}
+         </span>
       </div>
 
       <AuthProvider>
@@ -50,6 +60,7 @@ function App() {
 
             {/* Public pages */}
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} /> {/* NOU: Ruta pentru Register */}
             <Route path="/contact" element={<Contact />} />
 
             {/* Redirects to dashboard paths */}
@@ -157,4 +168,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
