@@ -32,7 +32,7 @@ function App() {
     mockApi.getTenants().then((data) => setChiriasi(data)).catch(() => setChiriasi([]));
 
     
-    fetch('http://localhost:5001/api/test')
+    fetch('https://management-apartamente-api.onrender.com/api/test')
       .then(res => res.json())
       .then(data => setMesajServer(data.mesaj)) 
       .catch(() => setMesajServer('Eroare: Serverul backend este oprit.'));
