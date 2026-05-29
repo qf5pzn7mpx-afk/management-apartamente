@@ -272,7 +272,43 @@ function TestimonialsSection() {
 }
 
 function ContactSection() {
-  const titleRef = useRef(null);
+  const titleRef = React.useRef(null);
+
+  const [formData, setFormData] = React.useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); 
+
+    try {
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert("Mesajul a fost trimis cu succes!");
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
+      } else {
+        alert("A apărut o eroare la trimitere. Verifică toate câmpurile.");
+      }
+    } catch (error) {
+      console.error("Eroare de conexiune:", error);
+      alert("Eroare de conexiune cu serverul.");
+    }
+  };
 
   useGSAP(() => {
     gsap.fromTo(titleRef.current,
@@ -295,29 +331,33 @@ function ContactSection() {
       </div>
       <div className="contact-form-box">
         <h3 className="contact-form-title">Don't Wait, Reach Out Now</h3>
-        <div className="contact-form-grid">
-          <div className="contact-field">
-            <label className="contact-label">First name *</label>
-            <input className="contact-input" type="text" />
+        
+        <form onSubmit={handleSubmit}>
+          <div className="contact-form-grid">
+            <div className="contact-field">
+              <label className="contact-label">First name *</label>
+              <input className="contact-input" type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
+            </div>
+            <div className="contact-field">
+              <label className="contact-label">Last name *</label>
+              <input className="contact-input" type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
+            </div>
+            <div className="contact-field">
+              <label className="contact-label">Email *</label>
+              <input className="contact-input" type="email" name="email" value={formData.email} onChange={handleChange} required />
+            </div>
+            <div className="contact-field">
+              <label className="contact-label">Phone</label>
+              <input className="contact-input" type="tel" name="phone" value={formData.phone} onChange={handleChange} />
+            </div>
+            <div className="contact-field contact-field-full">
+              <label className="contact-label">Message *</label>
+              <textarea className="contact-input contact-textarea" rows={4} name="message" value={formData.message} onChange={handleChange} required />
+            </div>
           </div>
-          <div className="contact-field">
-            <label className="contact-label">Last name *</label>
-            <input className="contact-input" type="text" />
-          </div>
-          <div className="contact-field">
-            <label className="contact-label">Email *</label>
-            <input className="contact-input" type="email" />
-          </div>
-          <div className="contact-field">
-            <label className="contact-label">Phone</label>
-            <input className="contact-input" type="tel" />
-          </div>
-          <div className="contact-field contact-field-full">
-            <label className="contact-label">Message *</label>
-            <textarea className="contact-input contact-textarea" rows={4} />
-          </div>
-        </div>
-        <button className="contact-submit">Submit</button>
+          <button type="submit" className="contact-submit">Submit</button>
+        </form>
+        
       </div>
     </section>
   );

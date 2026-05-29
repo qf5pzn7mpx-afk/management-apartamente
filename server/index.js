@@ -15,7 +15,6 @@ const db = new Database('management.db');
 app.use(cors());
 app.use(express.json());
 
-
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -40,8 +39,6 @@ const authorizeRole = (...allowedRoles) => {
   };
 };
 
-
-
 if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 app.use('/uploads', express.static('uploads'));
 
@@ -54,8 +51,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-
-
+// Crearea tabelelor (Am actualizat tabelul mesaje_contact)
 db.exec(`
   CREATE TABLE IF NOT EXISTS utilizatori (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -113,15 +109,16 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS mesaje_contact (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nume TEXT NOT NULL,
+    firstName TEXT NOT NULL,
+    lastName TEXT NOT NULL,
     email TEXT NOT NULL,
-    subiect TEXT,
-    mesaj TEXT NOT NULL,
+    phone TEXT,
+    message TEXT NOT NULL,
     data_trimiterii TEXT DEFAULT (datetime('now'))
   );
 `);
 
-
+// --- RUTE ---
 
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -163,12 +160,9 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-
-
 app.get('/api/test', (req, res) => {
   res.json({ mesaj: "Conexiune excelentă! Serverul este online." });
 });
-
 
 app.get('/api/chiriasi', (req, res) => {
   try {
@@ -178,7 +172,6 @@ app.get('/api/chiriasi', (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 app.post('/api/chiriasi', verifyToken, authorizeRole('manager'), (req, res) => {
   try {
@@ -193,7 +186,6 @@ app.post('/api/chiriasi', verifyToken, authorizeRole('manager'), (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 app.delete('/api/chiriasi/:id', verifyToken, authorizeRole('manager'), (req, res) => {
   try {
@@ -211,7 +203,6 @@ app.delete('/api/chiriasi/:id', verifyToken, authorizeRole('manager'), (req, res
   }
 });
 
-
 app.get('/api/apartamente', (req, res) => {
   res.json(db.prepare('SELECT * FROM apartamente').all());
 });
@@ -228,7 +219,6 @@ app.delete('/api/apartamente/:id', (req, res) => {
   db.prepare('DELETE FROM apartamente WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
-
 
 app.get('/api/facturi', (req, res) => {
   res.json(db.prepare('SELECT * FROM facturi').all());
@@ -252,7 +242,6 @@ app.delete('/api/facturi/:id', (req, res) => {
   res.json({ success: true });
 });
 
-
 app.get('/api/mentenanta', (req, res) => {
   res.json(db.prepare('SELECT * FROM mentenanta').all());
 });
@@ -270,7 +259,6 @@ app.patch('/api/mentenanta/:id/status', (req, res) => {
   db.prepare('UPDATE mentenanta SET status = ? WHERE id = ?').run(req.body.status, req.params.id);
   res.json({ success: true });
 });
-
 
 app.get('/api/documente', (req, res) => {
   res.json(db.prepare('SELECT * FROM documente').all());
@@ -316,22 +304,29 @@ app.delete('/api/documente/:id', (req, res) => {
   }
 });
 
-
+// Ruta GET pentru a citi mesajele
 app.get('/api/contact', (req, res) => {
   res.json(db.prepare('SELECT * FROM mesaje_contact ORDER BY id DESC').all());
 });
 
+// Ruta POST actualizată pentru noul formular
 app.post('/api/contact', (req, res) => {
-  const { nume, email, subiect, mesaj } = req.body;
-  if (!nume || !email || !mesaj) {
-    return res.status(400).json({ error: 'Câmpurile nume, email și mesaj sunt obligatorii' });
+  const { firstName, lastName, email, phone, message } = req.body;
+  
+  if (!firstName || !lastName || !email || !message) {
+    return res.status(400).json({ error: 'Câmpurile First name, Last name, Email și Message sunt obligatorii.' });
   }
-  const r = db.prepare(
-    'INSERT INTO mesaje_contact (nume, email, subiect, mesaj) VALUES (?, ?, ?, ?)'
-  ).run(nume, email, subiect, mesaj);
-  res.json({ success: true, id: r.lastInsertRowid });
+  
+  try {
+    const r = db.prepare(
+      'INSERT INTO mesaje_contact (firstName, lastName, email, phone, message) VALUES (?, ?, ?, ?, ?)'
+    ).run(firstName, lastName, email, phone || '', message);
+    
+    res.json({ success: true, id: r.lastInsertRowid, mesaj: 'Mesajul a fost trimis cu succes!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server pornit pe http://localhost:${PORT}`);
