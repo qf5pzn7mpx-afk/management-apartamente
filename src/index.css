@@ -959,3 +959,243 @@ img {
 .platform-card:hover .platform-cta {
   border-color: #f9fafa;
 }
+@media (max-width: 1024px) {
+  .container-centrat {
+    max-width: 100%;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .services-grid {
+    width: 100%;
+    height: auto;
+  }
+
+  .platform-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-section {
+    flex-direction: column;
+    padding: 60px 30px;
+  }
+
+  .contact-left {
+    flex: none;
+    width: 100%;
+  }
+
+  .contact-img {
+    width: 100%;
+    height: 300px;
+  }
+
+  .contact-form-box {
+    margin-left: 0;
+    margin-top: 40px;
+    padding: 40px 30px;
+  }
+
+  .site-footer-new {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    padding: 50px 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .site-header {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .main-menu ul {
+    gap: 16px;
+  }
+
+  .main-menu .paragraf-stil {
+    font-size: 13px !important;
+  }
+
+  .titlu-principal {
+    font-size: 36px;
+  }
+
+  .hero-grid-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+  }
+
+  .hero-text-block {
+    grid-column: unset;
+    padding-top: 0;
+  }
+
+  .hero-image-block {
+    grid-column: unset;
+    padding-top: 30px;
+  }
+
+  .hero-image-block img {
+    width: 100%;
+    height: auto;
+  }
+
+  .services-section {
+    padding: 60px 0;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+    height: auto;
+  }
+
+  .service-card.border-r {
+    border-right: none;
+    border-bottom: 1px solid rgba(29, 29, 27, 0.15);
+  }
+
+  .platform-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-card {
+    padding: 40px 24px;
+  }
+
+  .why-choose-container {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .info-card {
+    width: 90%;
+    padding: 40px 24px;
+  }
+
+  .properties-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .property-img {
+    height: 260px;
+  }
+
+  .offer-section {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .offer-banner {
+    padding: 60px 24px;
+  }
+
+  .offer-title {
+    font-size: 32px;
+  }
+
+  .offer-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-card {
+    border-right: none;
+    border-bottom: 1px solid rgba(29, 29, 27, 0.15);
+  }
+
+  .offer-card:last-child {
+    border-bottom: none;
+  }
+
+  .testimonials-section {
+    margin-left: 0;
+    width: 100%;
+    padding: 60px 24px;
+  }
+
+  .testimonials-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .testimonials-card {
+    padding: 40px 10px;
+  }
+
+  .testimonials-quote {
+    font-size: 18px;
+  }
+
+  .contact-section {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+    padding: 50px 24px;
+  }
+
+  .contact-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-field-full {
+    grid-column: 1;
+  }
+
+  .contact-form-box {
+    margin-left: 0;
+    margin-top: 30px;
+    padding: 30px 20px;
+  }
+
+  .contact-img {
+    width: 100%;
+    height: 250px;
+  }
+
+  .site-footer-new {
+    grid-template-columns: 1fr;
+    padding: 40px 24px;
+    gap: 30px;
+  }
+
+  .lightbox-content {
+    flex-direction: column;
+    width: 95%;
+    gap: 20px;
+  }
+
+  .lightbox-img {
+    width: 100%;
+    height: 280px;
+  }
+
+  .lightbox-address {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .titlu-principal {
+    font-size: 28px;
+  }
+
+  .site-header {
+    padding: 14px 16px;
+  }
+
+  .main-menu {
+    display: none;
+  }
+
+  .offer-title {
+    font-size: 26px;
+  }
+
+  .contact-form-title {
+    font-size: 22px;
+  }
+}
