@@ -28,6 +28,8 @@ import ChiriasInvoices from './chirias/Invoices';
 import ChiriasDocuments from './chirias/Documents';
 import ChiriasMaintenance from './chirias/Maintenance';
 
+import TenantDocuments from './TenantDocuments';
+
 function App() {
   const [mesajServer, setMesajServer] = useState('Se încarcă...');
   const [chiriasi, setChiriasi] = useState([]);
@@ -64,7 +66,6 @@ function App() {
         }}
       >
         <strong>Status Server: </strong>
-
         <span
           style={{
             color: mesajServer.includes('Eroare') ? 'red' : 'blue',
@@ -83,128 +84,29 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/tenant-documents" element={<TenantDocuments />} />
 
-            <Route
-              path="/manager"
-              element={<Navigate to="/manager/dashboard" replace />}
-            />
+            <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
+            <Route path="/chirias" element={<Navigate to="/chirias/dashboard" replace />} />
 
-            <Route
-              path="/chirias"
-              element={<Navigate to="/chirias/dashboard" replace />}
-            />
+            <Route path="/manager/dashboard" element={<ProtectedRoute allowedRoles={['manager']}><ManagerDashboard /></ProtectedRoute>} />
+            <Route path="/manager/tenants" element={<ProtectedRoute allowedRoles={['manager']}><TenantsList /></ProtectedRoute>} />
+            <Route path="/manager/tenants/:id" element={<ProtectedRoute allowedRoles={['manager']}><TenantDetails /></ProtectedRoute>} />
 
-            <Route
-              path="/manager/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['manager']}>
-                  <ManagerDashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/chirias/dashboard" element={<ProtectedRoute allowedRoles={['chirias']}><ChiriasDashboard /></ProtectedRoute>} />
+            <Route path="/chirias/invoices" element={<ProtectedRoute allowedRoles={['chirias']}><ChiriasInvoices /></ProtectedRoute>} />
+            <Route path="/chirias/maintenance" element={<ProtectedRoute allowedRoles={['chirias']}><ChiriasMaintenance /></ProtectedRoute>} />
+            <Route path="/chirias/documents" element={<ProtectedRoute allowedRoles={['chirias']}><ChiriasDocuments /></ProtectedRoute>} />
 
-            <Route
-              path="/manager/tenants"
-              element={
-                <ProtectedRoute allowedRoles={['manager']}>
-                  <TenantsList />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/dashboard" element={<Dashboard chiriasi={chiriasi} />} />
+            <Route path="/adauga-chirias" element={<AdaugaChirias adaugaChirias={adaugaChirias} />} />
+            <Route path="/adauga-factura" element={<AdaugaFactura />} />
 
-            <Route
-              path="/manager/tenants/:id"
-              element={
-                <ProtectedRoute allowedRoles={['manager']}>
-                  <TenantDetails />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/facturi" element={<ProtectedRoute allowedRoles={['manager']}><GestionareFacturi /></ProtectedRoute>} />
+            <Route path="/mentenanta" element={<ProtectedRoute allowedRoles={['manager']}><GestionareMentenanta /></ProtectedRoute>} />
+            <Route path="/documente" element={<ProtectedRoute allowedRoles={['manager']}><GestionareDocumente /></ProtectedRoute>} />
 
-            <Route
-              path="/chirias/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['chirias']}>
-                  <ChiriasDashboard />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/chirias/invoices"
-              element={
-                <ProtectedRoute allowedRoles={['chirias']}>
-                  <ChiriasInvoices />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/chirias/maintenance"
-              element={
-                <ProtectedRoute allowedRoles={['chirias']}>
-                  <ChiriasMaintenance />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/chirias/documents"
-              element={
-                <ProtectedRoute allowedRoles={['chirias']}>
-                  <ChiriasDocuments />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/dashboard"
-              element={<Dashboard chiriasi={chiriasi} />}
-            />
-
-            <Route
-              path="/adauga-chirias"
-              element={
-                <AdaugaChirias adaugaChirias={adaugaChirias} />
-              }
-            />
-
-            <Route
-              path="/adauga-factura"
-              element={<AdaugaFactura />}
-            />
-
-            <Route
-              path="/facturi"
-              element={
-                <ProtectedRoute allowedRoles={['manager']}>
-                  <GestionareFacturi />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/mentenanta"
-              element={
-                <ProtectedRoute allowedRoles={['manager']}>
-                  <GestionareMentenanta />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/documente"
-              element={
-                <ProtectedRoute allowedRoles={['manager']}>
-                  <GestionareDocumente />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/raporteaza-problema"
-              element={<RaporteazaProblema />}
-            />
+            <Route path="/raporteaza-problema" element={<RaporteazaProblema />} />
 
           </Routes>
         </BrowserRouter>

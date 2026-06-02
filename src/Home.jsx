@@ -120,7 +120,7 @@ function PlatformSection() {
             </div>
             <h3 className="platform-title">{f.title}</h3>
             <p className="platform-text">{f.description}</p>
-            <Link to="/login" className="platform-cta">Access Now →</Link>
+            <Link to={f.number === '01' ? '/tenant-documents' : '/login'} className="platform-cta">Access Now →</Link>
           </div>
         ))}
       </div>
@@ -287,7 +287,7 @@ function ContactSection() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
     try {
       const response = await fetch('https://management-apartamente-api.onrender.com/api/contact', {
@@ -331,7 +331,6 @@ function ContactSection() {
       </div>
       <div className="contact-form-box">
         <h3 className="contact-form-title">Don't Wait, Reach Out Now</h3>
-        
         <form onSubmit={handleSubmit}>
           <div className="contact-form-grid">
             <div className="contact-field">
@@ -357,7 +356,6 @@ function ContactSection() {
           </div>
           <button type="submit" className="contact-submit">Submit</button>
         </form>
-        
       </div>
     </section>
   );
