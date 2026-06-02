@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import Navbar from './Navbar';
 
 function AdaugaDocument() {
@@ -12,11 +11,14 @@ function AdaugaDocument() {
   const [loading, setLoading] = useState(false);
   const [eroare, setEroare] = useState('');
   const [succes, setSucces] = useState(false);
-  
+  const [dragOver, setDragOver] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    import('./api/mockApi').then(({ getTenants }) => getTenants().then((data) => { if (Array.isArray(data)) setChiriasi(data); })).catch(() => setEroare('Nu pot încărca lista chiriașilor'));
+    import('./api/mockApi').then(({ getTenants }) => getTenants().then((data) => {
+      if (Array.isArray(data)) setChiriasi(data);
+    })).catch(() => setEroare('Nu pot încărca lista chiriașilor'));
   }, []);
 
   const handleSave = async () => {
@@ -24,187 +26,187 @@ function AdaugaDocument() {
       setEroare('Te rugăm să completezi toate câmpurile și să alegi un fișier!');
       return;
     }
-
     setLoading(true);
     setEroare('');
-    setSucces(false);
-
-    const formData = new FormData();
-    formData.append('nume_fisier', numeDocument);
-    formData.append('tip', tipDocument);
-    formData.append('chirias_id', chiriasId);
-    formData.append('fisier', fisier);
-
     try {
-      const payload = { nume_fisier: numeDocument, tip: tipDocument, chirias_id: chiriasId, fisier: fisier ? fisier.name : null };
+      const payload = { nume_fisier: numeDocument, tip: tipDocument, chirias_id: chiriasId, fisier: fisier.name };
       const { addDocument } = await import('./api/mockApi');
       await addDocument(payload);
       setSucces(true);
-      setTimeout(() => {
-        navigate('/documente');
-      }, 1500);
+      setTimeout(() => navigate('/documente'), 1500);
     } catch (err) {
-      setEroare('Eroare de conexiune: ' + err.message);
+      setEroare('Eroare: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const tipuriDisponibile = [
-    { value: 'contract', label: 'Contract', icon: '📄' },
-    { value: 'identitate', label: 'Act de identitate', icon: '🆔' },
-    { value: 'factura', label: 'Factură', icon: '💳' },
-    { value: 'alte', label: 'Alte documente', icon: '📁' }
+  const tipuri = [
+    { value: 'contract', label: 'Contract' },
+    { value: 'identitate', label: 'ID' },
+    { value: 'factura', label: 'Invoice' },
+    { value: 'alte', label: 'Other' },
   ];
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped) setFisier(dropped);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div className="py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm sm:p-10"
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 30px' }}>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '50px' }}>
+          <div>
+            <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase' }}>01 — Tenant Platform</span>
+            <h1 style={{ fontFamily: 'Forum, serif', fontSize: '52px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: '12px 0 0 0' }}>
+              Upload<br />Document
+            </h1>
+          </div>
+          <Link
+            to="/documente"
+            style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '2px', marginTop: '8px' }}
           >
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-indigo-600">Încarcă document</p>
-                <h1 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">
-                  Adaugă un document nou
-                </h1>
-              </div>
-              <Link
-                to="/documente"
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                ← Înapoi
-              </Link>
+            ← Back
+          </Link>
+        </div>
+
+        {eroare && (
+          <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: '14px 20px', marginBottom: '30px', color: '#cc0000', fontSize: '14px' }}>
+            {eroare}
+          </div>
+        )}
+
+        {succes && (
+          <div style={{ background: '#f0fff0', border: '1px solid #ccffcc', padding: '14px 20px', marginBottom: '30px', color: '#007700', fontSize: '14px' }}>
+            ✓ Document salvat cu succes! Redirecționare...
+          </div>
+        )}
+
+        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+
+          <div style={{ marginBottom: '36px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Tenant *</label>
+            <select
+              value={chiriasId}
+              onChange={(e) => setChiriasId(e.target.value)}
+              style={{ width: '100%', padding: '12px 16px', border: '1px solid rgba(29,29,27,0.2)', background: '#f9fafa', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+            >
+              <option value="">Select a tenant</option>
+              {chiriasi.map(c => (
+                <option key={c.id} value={c.id}>{c.nume}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '36px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Document Type *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+              {tipuri.map(tip => (
+                <button
+                  key={tip.value}
+                  onClick={() => setTipDocument(tip.value)}
+                  style={{
+                    padding: '14px',
+                    border: `1px solid ${tipDocument === tip.value ? '#1d1d1b' : 'rgba(29,29,27,0.2)'}`,
+                    background: tipDocument === tip.value ? '#1d1d1b' : '#fff',
+                    color: tipDocument === tip.value ? '#f9fafa' : '#1d1d1b',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    fontFamily: 'Helvetica, sans-serif',
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {tip.label}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {eroare && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mb-6 rounded-[24px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700"
-              >
-                {eroare}
-              </motion.div>
-            )}
+          <div style={{ marginBottom: '36px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Document Name *</label>
+            <input
+              type="text"
+              value={numeDocument}
+              onChange={(e) => setNumeDocument(e.target.value)}
+              placeholder="Ex: Rental Agreement 2024"
+              style={{ width: '100%', padding: '12px 16px', border: '1px solid rgba(29,29,27,0.2)', background: '#f9fafa', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', boxSizing: 'border-box' }}
+            />
+          </div>
 
-            {succes && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mb-6 rounded-[24px] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700"
-              >
-                ✓ Document salvat cu succes! Redirecționare...
-              </motion.div>
-            )}
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-3">
-                  Chiriaș *
-                </label>
-                <select
-                  value={chiriasId}
-                  onChange={(e) => setChiriasId(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                >
-                  <option value="">Selectează un chiriaș</option>
-                  {chiriasi.map(chirias => (
-                    <option key={chirias.id} value={chirias.id}>
-                      {chirias.nume}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-3">
-                  Tip document *
-                </label>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {tipuriDisponibile.map(tip => (
-                    <motion.button
-                      key={tip.value}
-                      type="button"
-                      onClick={() => setTipDocument(tip.value)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`rounded-2xl border-2 p-4 text-center transition ${
-                        tipDocument === tip.value
-                          ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-slate-200 bg-white hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="text-2xl">{tip.icon}</div>
-                      <div className="mt-2 text-xs font-semibold text-slate-900">
-                        {tip.label}
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-3">
-                  Nume document *
-                </label>
-                <input
-                  type="text"
-                  value={numeDocument}
-                  onChange={(e) => setNumeDocument(e.target.value)}
-                  placeholder="Ex: Contract_Închiriere_2024"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-3">
-                  Alege fișier (PDF, DOC, JPG, PNG) *
-                </label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => setFisier(e.target.files[0])}
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 transition hover:file:bg-indigo-200"
-                  />
-                </div>
-                {fisier && (
-                  <p className="mt-2 text-sm text-slate-600">
-                    Fișier selectat: <span className="font-semibold">{fisier.name}</span>
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
-                <Link
-                  to="/documente"
-                  className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Anulează
-                </Link>
-                <motion.button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={loading}
-                  whileHover={{ scale: loading ? 1 : 1.02 }}
-                  whileTap={{ scale: loading ? 1 : 0.98 }}
-                  className={`rounded-2xl px-6 py-3 text-center text-sm font-semibold text-white transition ${
-                    loading
-                      ? 'cursor-not-allowed bg-slate-400'
-                      : 'bg-indigo-600 hover:bg-indigo-700'
-                  }`}
-                >
-                  {loading ? 'Se salvează...' : 'Salvează document'}
-                </motion.button>
-              </div>
+          <div style={{ marginBottom: '50px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>File (PDF, DOC, JPG, PNG) *</label>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('fileInput').click()}
+              style={{
+                border: `2px dashed ${dragOver ? '#1d1d1b' : 'rgba(29,29,27,0.2)'}`,
+                padding: '50px 30px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                background: dragOver ? '#f5f5f0' : '#fcfdf5',
+                transition: 'all 0.2s',
+              }}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5" style={{ margin: '0 auto 16px' }}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              {fisier ? (
+                <p style={{ fontSize: '14px', color: '#1d1d1b', margin: 0 }}>
+                  <strong>{fisier.name}</strong> — {(fisier.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              ) : (
+                <>
+                  <p style={{ fontSize: '14px', color: '#999', margin: '0 0 6px 0' }}>Drag & drop or click to select</p>
+                  <p style={{ fontSize: '12px', color: '#bbb', margin: 0 }}>PDF, DOC, JPG, PNG</p>
+                </>
+              )}
+              <input
+                id="fileInput"
+                type="file"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                onChange={(e) => setFisier(e.target.files[0])}
+                style={{ display: 'none' }}
+              />
             </div>
-          </motion.div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Link
+              to="/documente"
+              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px' }}
+            >
+              Cancel
+            </Link>
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              style={{
+                background: loading ? '#999' : '#1d1d1b',
+                color: '#f9fafa',
+                border: 'none',
+                padding: '14px 40px',
+                fontSize: '14px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'Helvetica, sans-serif',
+                letterSpacing: '0.05em',
+                transition: 'opacity 0.2s',
+              }}
+              onMouseOver={e => { if (!loading) e.currentTarget.style.opacity = '0.8'; }}
+              onMouseOut={e => e.currentTarget.style.opacity = '1'}
+            >
+              {loading ? 'Saving...' : 'Save Document'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

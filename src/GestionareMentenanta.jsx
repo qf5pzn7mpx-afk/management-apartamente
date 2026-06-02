@@ -6,123 +6,176 @@ function GestionareMentenanta() {
   const [cereri, setCereri] = useState([]);
   const [loading, setLoading] = useState(true);
   const [eroare, setEroare] = useState('');
+  const [filtruActiv, setFiltruActiv] = useState('All');
 
   const incarcaCereri = () => {
     setLoading(true);
-    import('./api/mockApi').then(m => m.getMaintenance()).then((data) => {
-      if (Array.isArray(data)) setCereri(data);
-      else setEroare('Datele de la server nu sunt în formatul așteptat.');
-    }).catch(() => setEroare('Nu am putut încărca cererile.')).finally(() => setLoading(false));
+    import('./api/mockApi').then(m => m.getMaintenance())
+      .then((data) => { if (Array.isArray(data)) setCereri(data); })
+      .catch(() => setEroare('Nu am putut încărca cererile.'))
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    incarcaCereri();
-  }, []);
+  useEffect(() => { incarcaCereri(); }, []);
 
   const schimbaStatus = async (id, statusNou) => {
     try {
       const { updateMaintenanceStatus } = await import('./api/mockApi');
       await updateMaintenanceStatus(id, statusNou);
       incarcaCereri();
-    } catch (err) {
+    } catch {
       alert("Nu am putut actualiza statusul.");
     }
   };
 
-  const totalNoi = cereri.filter((item) => item.status === 'Nouă').length;
-  const totalInProgres = cereri.filter((item) => item.status === 'În lucru').length;
-  const totalFinalizate = cereri.filter((item) => item.status === 'Rezolvată').length;
+  const getPrioritateBg = (prioritate) => {
+    if (prioritate === 'High') return '#fff0f0';
+    if (prioritate === 'Medium') return '#f8f0e8';
+    return '#f0f8ff';
+  };
+
+  const getPrioritateColor = (prioritate) => {
+    if (prioritate === 'High') return '#cc0000';
+    if (prioritate === 'Medium') return '#8a5a2d';
+    return '#2d4a8a';
+  };
+
+  const getStatusBg = (status) => {
+    if (status === 'Rezolvată') return '#e8f4e8';
+    if (status === 'În lucru') return '#e8eef8';
+    return '#f8f0e8';
+  };
+
+  const getStatusColor = (status) => {
+    if (status === 'Rezolvată') return '#2d7a2d';
+    if (status === 'În lucru') return '#2d4a8a';
+    return '#8a5a2d';
+  };
+
+  const filtre = ['All', 'Nouă', 'În lucru', 'Rezolvată'];
+
+  const cereriFilrate = filtruActiv === 'All' ? cereri : cereri.filter(c => c.status === filtruActiv);
+
+  const totalNoi = cereri.filter(c => c.status === 'Nouă').length;
+  const totalInProgres = cereri.filter(c => c.status === 'În lucru').length;
+  const totalFinalizate = cereri.filter(c => c.status === 'Rezolvată').length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div className="py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          {}
-          <div className="mb-8 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-indigo-600">Admin Panel</p>
-                <h1 className="mt-3 text-3xl font-semibold text-slate-900">Mentenanță Active</h1>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 30px' }}>
+
+        <div style={{ marginBottom: '16px' }}>
+          <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase' }}>03 — Tenant Platform</span>
+        </div>
+        <h1 style={{ fontFamily: 'Forum, serif', fontSize: '64px', fontWeight: 400, color: '#1d1d1b', lineHeight: 1.1, margin: '0 0 20px 0', textTransform: 'uppercase' }}>
+          Maintenance<br />Requests
+        </h1>
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '50px', gap: '40px' }}>
+          <p style={{ fontSize: '16px', color: '#666', lineHeight: 1.7, maxWidth: '420px', margin: 0 }}>
+            Report issues, track repair progress and communicate directly with your property manager in real time.
+          </p>
+          <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+            {[{ label: 'NEW', value: totalNoi }, { label: 'IN PROGRESS', value: totalInProgres }, { label: 'RESOLVED', value: totalFinalizate }].map(stat => (
+              <div key={stat.label} style={{ border: '1px solid rgba(29,29,27,0.15)', padding: '24px 30px', textAlign: 'center', background: '#fff' }}>
+                <div style={{ fontFamily: 'Forum, serif', fontSize: '42px', color: '#1d1d1b', lineHeight: 1 }}>{loading ? '-' : stat.value}</div>
+                <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', marginTop: '8px', textTransform: 'uppercase' }}>{stat.label}</div>
               </div>
-              <Link to="/raporteaza-problema" className="rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition">
-                + Adaugă cerere
-              </Link>
-            </div>
+            ))}
           </div>
+        </div>
 
-          <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-            {}
-            <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">Solicitări Primite</h2>
-              
-              <div className="space-y-4">
-                {cereri.map((cerere) => (
-                  <div key={cerere.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                    <div className="flex flex-col md:flex-row gap-6">
-                      {}
-                      {cerere.poza && (
-                        <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                          <img 
-                            src={cerere.poza || ''} 
-                          />
-                        </div>
-                      )}
+        {eroare && (
+          <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: '14px 20px', marginBottom: '30px', color: '#cc0000', fontSize: '14px' }}>
+            {eroare}
+          </div>
+        )}
 
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${cerere.status === 'Nouă' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
-                            {cerere.status}
-                          </span>
-                          <span className="text-xs text-slate-400">{cerere.data_crearii}</span>
-                        </div>
-                        
-                        <h3 className="mt-2 text-lg font-bold text-slate-900">{cerere.titlu}</h3>
-                        <p className="mt-1 text-sm text-slate-600 leading-relaxed">{cerere.descriere}</p>
-                        
-                        {}
-                        <div className="mt-4 flex gap-2">
-                          <button 
-                            onClick={() => schimbaStatus(cerere.id, 'În lucru')}
-                            className="text-xs font-semibold bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition"
-                          >
-                            Setează "În lucru"
-                          </button>
-                          <button 
-                            onClick={() => schimbaStatus(cerere.id, 'Rezolvată')}
-                            className="text-xs font-semibold bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-green-50 hover:text-green-600 transition"
-                          >
-                            Marchează Finalizat
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px' }}>
+          <div style={{ display: 'flex' }}>
+            {filtre.map(f => (
+              <button
+                key={f}
+                onClick={() => setFiltruActiv(f)}
+                style={{
+                  padding: '10px 24px', fontSize: '14px',
+                  border: '1px solid rgba(29,29,27,0.2)',
+                  background: filtruActiv === f ? '#1d1d1b' : '#fff',
+                  color: filtruActiv === f ? '#f9fafa' : '#1d1d1b',
+                  cursor: 'pointer', fontFamily: 'Helvetica, sans-serif',
+                  marginRight: '-1px', transition: 'all 0.2s',
+                }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <Link
+            to="/raporteaza-problema"
+            style={{ background: '#1d1d1b', color: '#f9fafa', padding: '12px 28px', fontSize: '14px', textDecoration: 'none', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em' }}
+          >
+            + New Request
+          </Link>
+        </div>
 
-            {}
-            <div className="space-y-6">
-              <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900 mb-6">Statistici</h2>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-orange-50 rounded-2xl">
-                    <span className="text-sm font-medium text-orange-700">Cereri Noi</span>
-                    <span className="text-2xl font-bold text-orange-700">{totalNoi}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {loading ? (
+            <div style={{ padding: '60px', textAlign: 'center', color: '#999', background: '#fff', border: '1px solid rgba(29,29,27,0.12)' }}>Se încarcă...</div>
+          ) : cereriFilrate.length === 0 ? (
+            <div style={{ padding: '60px', textAlign: 'center', color: '#999', background: '#fff', border: '1px solid rgba(29,29,27,0.12)' }}>Nu există cereri.</div>
+          ) : (
+            cereriFilrate.map((cerere) => (
+              <div
+                key={cerere.id}
+                style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '30px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'start' }}
+                onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
+                onMouseOut={e => e.currentTarget.style.background = '#fff'}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', padding: '4px 12px', background: getStatusBg(cerere.status), color: getStatusColor(cerere.status) }}>
+                      {cerere.status || 'Nouă'}
+                    </span>
+                    {cerere.prioritate && (
+                      <span style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', padding: '4px 12px', background: getPrioritateBg(cerere.prioritate), color: getPrioritateColor(cerere.prioritate) }}>
+                        {cerere.prioritate}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '12px', color: '#999', marginLeft: 'auto' }}>{cerere.data_crearii || ''}</span>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl">
-                    <span className="text-sm font-medium text-blue-700">În lucru</span>
-                    <span className="text-2xl font-bold text-blue-700">{totalInProgres}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl">
-                    <span className="text-sm font-medium text-green-700">Rezolvate</span>
-                    <span className="text-2xl font-bold text-green-700">{totalFinalizate}</span>
-                  </div>
+
+                  <h3 style={{ fontFamily: 'Forum, serif', fontSize: '22px', color: '#1d1d1b', margin: '0 0 8px 0' }}>{cerere.titlu}</h3>
+                  <p style={{ fontSize: '14px', color: '#666', lineHeight: 1.7, margin: '0 0 16px 0' }}>{cerere.descriere}</p>
+
+                  {cerere.chirias_nume && (
+                    <p style={{ fontSize: '13px', color: '#999', margin: 0 }}>
+                      Tenant: <strong style={{ color: '#1d1d1b' }}>{cerere.chirias_nume}</strong>
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '160px' }}>
+                  {cerere.poza && (
+                    <img src={cerere.poza} alt="issue" style={{ width: '100%', height: '100px', objectFit: 'cover', marginBottom: '8px' }} />
+                  )}
+                  <button
+                    onClick={() => schimbaStatus(cerere.id, 'În lucru')}
+                    style={{ padding: '8px 16px', border: '1px solid rgba(29,29,27,0.2)', background: '#fff', fontSize: '13px', color: '#1d1d1b', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s' }}
+                    onMouseOver={e => e.currentTarget.style.background = '#1d1d1b' & (e.currentTarget.style.color = '#fff')}
+                  >
+                    Set In Progress
+                  </button>
+                  <button
+                    onClick={() => schimbaStatus(cerere.id, 'Rezolvată')}
+                    style={{ padding: '8px 16px', border: '1px solid #2d7a2d', background: '#e8f4e8', fontSize: '13px', color: '#2d7a2d', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s' }}
+                  >
+                    Mark Resolved
+                  </button>
                 </div>
               </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       </div>
     </div>

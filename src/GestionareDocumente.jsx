@@ -7,6 +7,7 @@ function GestionareDocumente() {
   const [chiriasi, setChiriasi] = useState([]);
   const [loading, setLoading] = useState(true);
   const [eroare, setEroare] = useState('');
+  const [filtruActiv, setFiltruActiv] = useState('All');
 
   useEffect(() => {
     Promise.all([
@@ -22,176 +23,187 @@ function GestionareDocumente() {
   }, []);
 
   const stergeDocument = async (id) => {
-    const confirmare = window.confirm("Sigur vrei să ștergi acest document? Această acțiune nu poate fi anulată.");
-    if (!confirmare) return;
-
+    if (!window.confirm("Sigur vrei să ștergi acest document?")) return;
     try {
       const { deleteDocument } = await import('./api/mockApi');
       await deleteDocument(id);
       setDocumente(documente.filter((doc) => doc.id !== id));
     } catch (err) {
-      alert("Nu am putut contacta serverul: " + err.message);
+      alert("Eroare: " + err.message);
     }
   };
 
   const getChiriasNume = (chiriasId) => {
     const chirias = chiriasi.find(ch => ch.id === chiriasId);
-    return chirias ? chirias.nume : 'Chiriaș necunoscut';
+    return chirias ? chirias.nume : 'Necunoscut';
   };
 
-  const getIconForTip = (tip) => {
-    const icons = {
-      'contract': '📄',
-      'identitate': '🆔',
-      'factura': '💳',
-      'alte': '📁'
-    };
-    return icons[tip] || '📄';
+  const getTipLabel = (tip) => {
+    const labels = { contract: 'Contract', identitate: 'ID', factura: 'Invoice', alte: 'Other' };
+    return labels[tip] || tip;
   };
 
-  const totalDocumente = documente.length;
-  const documenteContracte = documente.filter(doc => doc.tip === 'contract').length;
-  const documenteIdentitate = documente.filter(doc => doc.tip === 'identitate').length;
+  const getStatusLabel = (doc) => {
+    if (doc.status) return doc.status;
+    if (doc.tip === 'contract') return 'Signed';
+    if (doc.tip === 'identitate') return 'Verified';
+    return 'Pending';
+  };
+
+  const getStatusBg = (status) => {
+    if (status === 'Signed') return '#e8f4e8';
+    if (status === 'Verified') return '#e8eef8';
+    return '#f8f0e8';
+  };
+
+  const getStatusColor = (status) => {
+    if (status === 'Signed') return '#2d7a2d';
+    if (status === 'Verified') return '#2d4a8a';
+    return '#8a5a2d';
+  };
+
+  const filtre = ['All', 'Contract', 'ID', 'Invoice', 'Other'];
+
+  const documenteFiltrate = filtruActiv === 'All'
+    ? documente
+    : documente.filter(doc => getTipLabel(doc.tip) === filtruActiv);
+
+  const total = documente.length;
+  const signed = documente.filter(d => getStatusLabel(d) === 'Signed').length;
+  const pending = documente.filter(d => getStatusLabel(d) === 'Pending').length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div className="py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-indigo-600">Documente chiriaș</p>
-                <h1 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">
-                  Gestionați toate documentele chiriașilor într-un singur loc
-                </h1>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                  Încărcați contracte, acte de identitate și alte documente importante. Organizați totul pentru acces rapid și securizat.
-                </p>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 30px' }}>
+
+        <div style={{ marginBottom: '16px' }}>
+          <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase' }}>01 — Tenant Platform</span>
+        </div>
+        <h1 style={{ fontFamily: 'Forum, serif', fontSize: '64px', fontWeight: 400, color: '#1d1d1b', lineHeight: 1.1, margin: '0 0 20px 0', textTransform: 'uppercase' }}>
+          Tenant<br />Documents
+        </h1>
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '50px', gap: '40px' }}>
+          <p style={{ fontSize: '16px', color: '#666', lineHeight: 1.7, maxWidth: '420px', margin: 0 }}>
+            Upload, sign and manage all your rental agreements and personal documents securely in one place.
+          </p>
+          <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+            {[{ label: 'TOTAL', value: total }, { label: 'SIGNED', value: signed }, { label: 'PENDING', value: pending }].map(stat => (
+              <div key={stat.label} style={{ border: '1px solid rgba(29,29,27,0.15)', padding: '24px 36px', textAlign: 'center', background: '#fff' }}>
+                <div style={{ fontFamily: 'Forum, serif', fontSize: '42px', color: '#1d1d1b', lineHeight: 1 }}>{loading ? '-' : stat.value}</div>
+                <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', marginTop: '8px', textTransform: 'uppercase' }}>{stat.label}</div>
               </div>
-              <Link
-                to="/adauga-document"
-                className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-700"
+            ))}
+          </div>
+        </div>
+
+        {eroare && (
+          <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: '14px 20px', marginBottom: '30px', color: '#cc0000', fontSize: '14px' }}>
+            {eroare}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px' }}>
+          <div style={{ display: 'flex' }}>
+            {filtre.map(f => (
+              <button
+                key={f}
+                onClick={() => setFiltruActiv(f)}
+                style={{
+                  padding: '10px 24px',
+                  fontSize: '14px',
+                  border: '1px solid rgba(29,29,27,0.2)',
+                  background: filtruActiv === f ? '#1d1d1b' : '#fff',
+                  color: filtruActiv === f ? '#f9fafa' : '#1d1d1b',
+                  cursor: 'pointer',
+                  fontFamily: 'Helvetica, sans-serif',
+                  marginRight: '-1px',
+                  transition: 'all 0.2s',
+                }}
               >
-                + Încarcă document
-              </Link>
-            </div>
+                {f}
+              </button>
+            ))}
+          </div>
+          <Link
+            to="/adauga-document"
+            style={{
+              background: '#1d1d1b',
+              color: '#f9fafa',
+              padding: '12px 28px',
+              fontSize: '14px',
+              textDecoration: 'none',
+              fontFamily: 'Helvetica, sans-serif',
+              letterSpacing: '0.05em',
+            }}
+          >
+            + Upload Document
+          </Link>
+        </div>
+
+        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 120px', padding: '14px 24px', borderBottom: '1px solid rgba(29,29,27,0.1)', background: '#fcfdf5' }}>
+            {['DOCUMENT', 'TYPE', 'DATE', 'STATUS', ''].map(col => (
+              <span key={col} style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>{col}</span>
+            ))}
           </div>
 
-          {eroare && (
-            <div className="mb-6 rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-              {eroare}
-            </div>
-          )}
-
-          <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-            <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900">Biblioteca documente</h2>
-                  <p className="mt-2 text-sm text-slate-500">Toate documentele chiriașilor organizate și securizate.</p>
-                </div>
-                <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
-                  {loading ? 'Se încarcă…' : `${totalDocumente} documente`}
-                </span>
-              </div>
-
-              {loading ? (
-                <div className="mt-10 rounded-[28px] border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
-                  Se încarcă documentele...
-                </div>
-              ) : documente.length === 0 ? (
-                <div className="mt-10 rounded-[28px] border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-slate-600">
-                  Nu există documente încărcate.
-                </div>
-              ) : (
-                <div className="mt-6 space-y-4">
-                  {documente.map((document) => (
-                    <div
-                      key={document.id}
-                      className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          {loading ? (
+            <div style={{ padding: '60px', textAlign: 'center', color: '#999' }}>Se încarcă...</div>
+          ) : documenteFiltrate.length === 0 ? (
+            <div style={{ padding: '60px', textAlign: 'center', color: '#999' }}>Nu există documente.</div>
+          ) : (
+            documenteFiltrate.map((doc, i) => {
+              const status = getStatusLabel(doc);
+              return (
+                <div
+                  key={doc.id}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '2fr 1fr 1fr 1fr 120px',
+                    padding: '20px 24px',
+                    borderBottom: i < documenteFiltrate.length - 1 ? '1px solid rgba(29,29,27,0.08)' : 'none',
+                    alignItems: 'center',
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
+                  onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <svg width="18" height="20" viewBox="0 0 18 20" fill="none" stroke="#999" strokeWidth="1.5">
+                      <path d="M10 1H3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z" />
+                      <path d="M10 1L16 7H10z" />
+                    </svg>
+                    <div>
+                      <div style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{doc.nume_fisier || doc.title}</div>
+                      <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>{doc.marime || ''}</div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '14px', color: '#555' }}>{getTipLabel(doc.tip)}</span>
+                  <span style={{ fontSize: '14px', color: '#555' }}>{doc.data || doc.createdAt || '-'}</span>
+                  <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
+                    {status}
+                  </span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <a
+                      href={doc.cale || doc.url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ padding: '6px 14px', border: '1px solid rgba(29,29,27,0.2)', fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', background: '#fff' }}
                     >
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-2xl">
-                            {getIconForTip(document.tip)}
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-900">{document.nume_fisier}</h3>
-                            <p className="text-sm text-slate-600">Chiriaș: {getChiriasNume(document.chirias_id)}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
-                            {document.tip}
-                          </span>
-                          
-                          {/* BUTON NOU DE DESCĂRCARE */}
-                          <a 
-                            href={document.cale || '#'} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                          >
-                            Deschide
-                          </a>
-                          
-                          <button 
-                            onClick={() => stergeDocument(document.id)}
-                            className="rounded-2xl bg-red-100 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-200"
-                          >
-                            Șterge
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-6">
-              <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-xl font-semibold text-slate-900">Rezumat documente</h2>
-                <div className="mt-6 grid gap-4">
-                  <div className="rounded-3xl bg-slate-50 p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Total documente</p>
-                        <p className="mt-2 text-2xl font-semibold text-slate-900">{loading ? '–' : totalDocumente}</p>
-                      </div>
-                      <div className="text-3xl">📁</div>
-                    </div>
-                  </div>
-                  <div className="rounded-3xl bg-slate-50 p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Contracte</p>
-                        <p className="mt-2 text-2xl font-semibold text-slate-900">{loading ? '–' : documenteContracte}</p>
-                      </div>
-                      <div className="text-3xl">📄</div>
-                    </div>
-                  </div>
-                  <div className="rounded-3xl bg-slate-50 p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Acte identitate</p>
-                        <p className="mt-2 text-2xl font-semibold text-slate-900">{loading ? '–' : documenteIdentitate}</p>
-                      </div>
-                      <div className="text-3xl">🆔</div>
-                    </div>
+                      Open
+                    </a>
+                    <button
+                      onClick={() => stergeDocument(doc.id)}
+                      style={{ padding: '6px 10px', border: '1px solid rgba(200,0,0,0.2)', fontSize: '13px', color: '#cc0000', background: '#fff0f0', cursor: 'pointer' }}
+                    >
+                      x
+                    </button>
                   </div>
                 </div>
-              </div>
-
-              <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-xl font-semibold text-slate-900">Sfat rapid</h2>
-                <p className="mt-4 text-sm leading-7 text-slate-600">
-                  Încărcați documentele imediat ce chiriașii le furnizează. Organizați-le pe tipuri pentru a le găsi rapid când aveți nevoie.
-                </p>
-              </div>
-            </div>
-          </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

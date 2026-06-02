@@ -12,6 +12,7 @@ import { AuthProvider } from './AuthContext';
 
 import AdaugaChirias from './AdaugaChirias';
 import AdaugaFactura from './AdaugaFactura';
+import AdaugaDocument from './AdaugaDocument';
 import GestionareFacturi from './GestionareFacturi';
 import GestionareMentenanta from './GestionareMentenanta';
 import GestionareDocumente from './GestionareDocumente';
@@ -101,6 +102,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard chiriasi={chiriasi} />} />
             <Route path="/adauga-chirias" element={<AdaugaChirias adaugaChirias={adaugaChirias} />} />
             <Route path="/adauga-factura" element={<AdaugaFactura />} />
+            <Route path="/adauga-document" element={<AdaugaDocument />} /> {/* Rută temporar neprotejată */}
 
             <Route path="/facturi" element={<ProtectedRoute allowedRoles={['manager']}><GestionareFacturi /></ProtectedRoute>} />
             <Route path="/mentenanta" element={<ProtectedRoute allowedRoles={['manager']}><GestionareMentenanta /></ProtectedRoute>} />

@@ -7,285 +7,168 @@ function GestionareFacturi() {
   const [facturi, setFacturi] = useState([]);
   const [loading, setLoading] = useState(true);
   const [eroare, setEroare] = useState('');
-
+  const [filtruActiv, setFiltruActiv] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-
   const [paginaCurenta, setPaginaCurenta] = useState(1);
-  const facturiPerPagina = 5;
+  const facturiPerPagina = 8;
 
   useEffect(() => {
-    mockApi
-      .getInvoices()
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setFacturi(data);
-        } else {
-          setEroare('Format date invalid.');
-        }
-      })
-      .catch(() => {
-        setEroare('Nu pot încărca facturile.');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    mockApi.getInvoices()
+      .then((data) => { if (Array.isArray(data)) setFacturi(data); })
+      .catch(() => setEroare('Nu pot încărca facturile.'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const facturiFiltrate = facturi.filter((factura) => {
-    const matchesSearch =
-      factura.chirias_nume
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      factura.id?.toString().includes(searchTerm);
+  const getStatusBg = (status) => {
+    if (status === 'Plătită') return '#e8f4e8';
+    if (status === 'Neplătită') return '#fff0f0';
+    return '#f8f0e8';
+  };
 
-    const matchesStatus = statusFilter
-      ? factura.status === statusFilter
-      : true;
+  const getStatusColor = (status) => {
+    if (status === 'Plătită') return '#2d7a2d';
+    if (status === 'Neplătită') return '#cc0000';
+    return '#8a5a2d';
+  };
 
-    const dataFactura = factura.data_emiterii
-      ? new Date(factura.data_emiterii)
-      : null;
+  const filtre = ['All', 'Plătită', 'Neplătită', 'În așteptare'];
 
-    const matchesStart =
-      startDate && dataFactura
-        ? dataFactura >= new Date(startDate)
-        : true;
-
-    const matchesEnd =
-      endDate && dataFactura
-        ? dataFactura <= new Date(endDate)
-        : true;
-
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesStart &&
-      matchesEnd
-    );
+  const facturiFiltrate = facturi.filter(f => {
+    const matchStatus = filtruActiv === 'All' || f.status === filtruActiv;
+    const matchSearch = f.chirias_nume?.toLowerCase().includes(searchTerm.toLowerCase()) || f.id?.toString().includes(searchTerm);
+    return matchStatus && matchSearch;
   });
 
-  const indexUltimaFactura =
-    paginaCurenta * facturiPerPagina;
+  const totalPlatite = facturi.filter(f => f.status === 'Plătită').length;
+  const totalNeplatite = facturi.filter(f => f.status === 'Neplătită').length;
+  const totalAsteptare = facturi.filter(f => f.status === 'În așteptare').length;
 
-  const indexPrimaFactura =
-    indexUltimaFactura - facturiPerPagina;
-
-  const facturiCurente = facturiFiltrate.slice(
-    indexPrimaFactura,
-    indexUltimaFactura
-  );
-
-  const totalPagini = Math.ceil(
-    facturiFiltrate.length / facturiPerPagina
-  );
+  const indexUltima = paginaCurenta * facturiPerPagina;
+  const indexPrima = indexUltima - facturiPerPagina;
+  const facturiCurente = facturiFiltrate.slice(indexPrima, indexUltima);
+  const totalPagini = Math.ceil(facturiFiltrate.length / facturiPerPagina);
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '60px 30px' }}>
 
-      <div className="px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+        <div style={{ marginBottom: '16px' }}>
+          <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase' }}>02 — Tenant Platform</span>
+        </div>
+        <h1 style={{ fontFamily: 'Forum, serif', fontSize: '64px', fontWeight: 400, color: '#1d1d1b', lineHeight: 1.1, margin: '0 0 20px 0', textTransform: 'uppercase' }}>
+          Invoice<br />Management
+        </h1>
 
-          <div className="mb-8 rounded-[32px] border border-slate-800 bg-slate-900 p-8 shadow-2xl">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-
-              <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-yellow-400">
-                  Gestionare Facturi
-                </p>
-
-                <h1 className="mt-3 text-4xl font-bold text-white">
-                  Facturi și plăți
-                </h1>
-
-                <p className="mt-4 max-w-2xl text-slate-400">
-                  Caută, filtrează și administrează toate
-                  facturile chiriașilor într-un singur loc.
-                </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '50px', gap: '40px' }}>
+          <p style={{ fontSize: '16px', color: '#666', lineHeight: 1.7, maxWidth: '420px', margin: 0 }}>
+            Track rent payments, utility bills and all invoices automatically. Never miss a payment deadline again.
+          </p>
+          <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+            {[{ label: 'PAID', value: totalPlatite }, { label: 'UNPAID', value: totalNeplatite }, { label: 'PENDING', value: totalAsteptare }].map(stat => (
+              <div key={stat.label} style={{ border: '1px solid rgba(29,29,27,0.15)', padding: '24px 36px', textAlign: 'center', background: '#fff' }}>
+                <div style={{ fontFamily: 'Forum, serif', fontSize: '42px', color: '#1d1d1b', lineHeight: 1 }}>{loading ? '-' : stat.value}</div>
+                <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', marginTop: '8px', textTransform: 'uppercase' }}>{stat.label}</div>
               </div>
-
-              <Link
-                to="/adauga-factura"
-                className="inline-flex items-center justify-center rounded-2xl bg-yellow-400 px-6 py-4 text-sm font-bold text-black transition hover:scale-105"
-              >
-                + Adaugă Factură
-              </Link>
-            </div>
-          </div>
-
-          <div className="mb-8 grid gap-4 rounded-[32px] border border-slate-800 bg-slate-900 p-6 md:grid-cols-4">
-
-            <input
-              type="text"
-              placeholder="Caută chiriaș sau ID..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPaginaCurenta(1);
-              }}
-              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
-            />
-
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPaginaCurenta(1);
-              }}
-              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
-            >
-              <option value="">Toate statusurile</option>
-              <option value="Plătită">Plătită</option>
-              <option value="Neplătită">Neplătită</option>
-              <option value="În așteptare">În așteptare</option>
-            </select>
-
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => {
-                setStartDate(e.target.value);
-                setPaginaCurenta(1);
-              }}
-              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
-            />
-
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => {
-                setEndDate(e.target.value);
-                setPaginaCurenta(1);
-              }}
-              className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-yellow-400"
-            />
-          </div>
-
-          {eroare && (
-            <div className="mb-6 rounded-2xl border border-red-500 bg-red-500/10 px-5 py-4 text-red-300">
-              {eroare}
-            </div>
-          )}
-
-          <div className="rounded-[32px] border border-slate-800 bg-slate-900 p-6 shadow-2xl">
-
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-white">
-                  Lista Facturilor
-                </h2>
-
-                <p className="mt-1 text-slate-400">
-                  {facturiFiltrate.length} facturi găsite
-                </p>
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="py-20 text-center text-slate-400">
-                Se încarcă facturile...
-              </div>
-            ) : facturiCurente.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-800/50 p-12 text-center text-slate-400">
-                Nu există facturi.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-800 text-left">
-                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
-                        Factură
-                      </th>
-
-                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
-                        Chiriaș
-                      </th>
-
-                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
-                        Sumă
-                      </th>
-
-                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
-                        Emisă
-                      </th>
-
-                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
-                        Scadență
-                      </th>
-
-                      <th className="px-4 py-4 text-sm font-semibold text-slate-300">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {facturiCurente.map((factura) => (
-                      <tr
-                        key={factura.id}
-                        className="border-b border-slate-800 transition hover:bg-slate-800/50"
-                      >
-                        <td className="px-4 py-5 text-white">
-                          #{factura.id}
-                        </td>
-
-                        <td className="px-4 py-5 text-slate-300">
-                          {factura.chirias_nume || '—'}
-                        </td>
-
-                        <td className="px-4 py-5 font-semibold text-yellow-400">
-                          {factura.suma || 0} RON
-                        </td>
-
-                        <td className="px-4 py-5 text-slate-300">
-                          {factura.data_emiterii || '—'}
-                        </td>
-
-                        <td className="px-4 py-5 text-slate-300">
-                          {factura.data_scadentei || '—'}
-                        </td>
-
-                        <td className="px-4 py-5">
-                          <span className="rounded-full bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-300">
-                            {factura.status || 'Neplătită'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {totalPagini > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-3">
-
-                {Array.from(
-                  { length: totalPagini },
-                  (_, index) => (
-                    <button
-                      key={index}
-                      onClick={() =>
-                        setPaginaCurenta(index + 1)
-                      }
-                      className={`h-11 w-11 rounded-xl font-semibold transition ${
-                        paginaCurenta === index + 1
-                          ? 'bg-yellow-400 text-black'
-                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                      }`}
-                    >
-                      {index + 1}
-                    </button>
-                  )
-                )}
-              </div>
-            )}
+            ))}
           </div>
         </div>
+
+        {eroare && (
+          <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: '14px 20px', marginBottom: '30px', color: '#cc0000', fontSize: '14px' }}>
+            {eroare}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', gap: '20px' }}>
+          <div style={{ display: 'flex' }}>
+            {filtre.map(f => (
+              <button
+                key={f}
+                onClick={() => { setFiltruActiv(f); setPaginaCurenta(1); }}
+                style={{
+                  padding: '10px 24px',
+                  fontSize: '14px',
+                  border: '1px solid rgba(29,29,27,0.2)',
+                  background: filtruActiv === f ? '#1d1d1b' : '#fff',
+                  color: filtruActiv === f ? '#f9fafa' : '#1d1d1b',
+                  cursor: 'pointer',
+                  fontFamily: 'Helvetica, sans-serif',
+                  marginRight: '-1px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <input
+              type="text"
+              placeholder="Search tenant or ID..."
+              value={searchTerm}
+              onChange={e => { setSearchTerm(e.target.value); setPaginaCurenta(1); }}
+              style={{ padding: '10px 16px', border: '1px solid rgba(29,29,27,0.2)', background: '#fff', fontSize: '14px', fontFamily: 'Helvetica, sans-serif', outline: 'none', width: '220px' }}
+            />
+            <Link
+              to="/adauga-factura"
+              style={{ background: '#1d1d1b', color: '#f9fafa', padding: '12px 28px', fontSize: '14px', textDecoration: 'none', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
+            >
+              + Add Invoice
+            </Link>
+          </div>
+        </div>
+
+        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '80px 1.5fr 1fr 1fr 1fr 1fr', padding: '14px 24px', borderBottom: '1px solid rgba(29,29,27,0.1)', background: '#fcfdf5' }}>
+            {['ID', 'TENANT', 'AMOUNT', 'ISSUED', 'DUE DATE', 'STATUS'].map(col => (
+              <span key={col} style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>{col}</span>
+            ))}
+          </div>
+
+          {loading ? (
+            <div style={{ padding: '60px', textAlign: 'center', color: '#999' }}>Se încarcă...</div>
+          ) : facturiCurente.length === 0 ? (
+            <div style={{ padding: '60px', textAlign: 'center', color: '#999' }}>Nu există facturi.</div>
+          ) : (
+            facturiCurente.map((factura, i) => (
+              <div
+                key={factura.id}
+                style={{ display: 'grid', gridTemplateColumns: '80px 1.5fr 1fr 1fr 1fr 1fr', padding: '20px 24px', borderBottom: i < facturiCurente.length - 1 ? '1px solid rgba(29,29,27,0.08)' : 'none', alignItems: 'center' }}
+                onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
+                onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: '14px', color: '#999' }}>#{factura.id}</span>
+                <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{factura.chirias_nume || '—'}</span>
+                <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 600 }}>{factura.suma || 0} RON</span>
+                <span style={{ fontSize: '14px', color: '#555' }}>{factura.data_emiterii || '—'}</span>
+                <span style={{ fontSize: '14px', color: '#555' }}>{factura.data_scadentei || '—'}</span>
+                <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(factura.status), color: getStatusColor(factura.status) }}>
+                  {factura.status || 'Neplătită'}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+
+        {totalPagini > 1 && (
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '40px' }}>
+            {Array.from({ length: totalPagini }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setPaginaCurenta(i + 1)}
+                style={{
+                  width: '40px', height: '40px', border: '1px solid rgba(29,29,27,0.2)',
+                  background: paginaCurenta === i + 1 ? '#1d1d1b' : '#fff',
+                  color: paginaCurenta === i + 1 ? '#f9fafa' : '#1d1d1b',
+                  cursor: 'pointer', fontSize: '14px', fontFamily: 'Helvetica, sans-serif',
+                }}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

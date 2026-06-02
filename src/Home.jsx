@@ -65,13 +65,13 @@ function PlatformSection() {
       number: '01',
       title: 'Tenant Documents',
       description: 'Upload, sign and manage all your rental agreements and personal documents securely in one place.',
+      link: '/documente',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="platform-icon">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14 2 14 8 20 8" />
           <line x1="16" y1="13" x2="8" y2="13" />
           <line x1="16" y1="17" x2="8" y2="17" />
-          <polyline points="10 9 9 9 8 9" />
         </svg>
       )
     },
@@ -79,6 +79,7 @@ function PlatformSection() {
       number: '02',
       title: 'Invoice Management',
       description: 'Track rent payments, utility bills and all invoices automatically. Never miss a payment deadline again.',
+      link: '/facturi',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="platform-icon">
           <rect x="2" y="3" width="20" height="18" rx="2" />
@@ -95,6 +96,7 @@ function PlatformSection() {
       number: '03',
       title: 'Maintenance Requests',
       description: 'Report issues, track repair progress and communicate directly with your property manager in real time.',
+      link: '/mentenanta',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="platform-icon">
           <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
@@ -120,7 +122,7 @@ function PlatformSection() {
             </div>
             <h3 className="platform-title">{f.title}</h3>
             <p className="platform-text">{f.description}</p>
-            <Link to={f.number === '01' ? '/tenant-documents' : '/login'} className="platform-cta">Access Now →</Link>
+            <Link to={f.link} className="platform-cta">Access Now →</Link>
           </div>
         ))}
       </div>
@@ -272,43 +274,7 @@ function TestimonialsSection() {
 }
 
 function ContactSection() {
-  const titleRef = React.useRef(null);
-
-  const [formData, setFormData] = React.useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await fetch('https://management-apartamente-api.onrender.com/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        alert("Mesajul a fost trimis cu succes!");
-        setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
-      } else {
-        alert("A apărut o eroare la trimitere. Verifică toate câmpurile.");
-      }
-    } catch (error) {
-      console.error("Eroare de conexiune:", error);
-      alert("Eroare de conexiune cu serverul.");
-    }
-  };
+  const titleRef = useRef(null);
 
   useGSAP(() => {
     gsap.fromTo(titleRef.current,
@@ -331,31 +297,29 @@ function ContactSection() {
       </div>
       <div className="contact-form-box">
         <h3 className="contact-form-title">Don't Wait, Reach Out Now</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="contact-form-grid">
-            <div className="contact-field">
-              <label className="contact-label">First name *</label>
-              <input className="contact-input" type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
-            </div>
-            <div className="contact-field">
-              <label className="contact-label">Last name *</label>
-              <input className="contact-input" type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
-            </div>
-            <div className="contact-field">
-              <label className="contact-label">Email *</label>
-              <input className="contact-input" type="email" name="email" value={formData.email} onChange={handleChange} required />
-            </div>
-            <div className="contact-field">
-              <label className="contact-label">Phone</label>
-              <input className="contact-input" type="tel" name="phone" value={formData.phone} onChange={handleChange} />
-            </div>
-            <div className="contact-field contact-field-full">
-              <label className="contact-label">Message *</label>
-              <textarea className="contact-input contact-textarea" rows={4} name="message" value={formData.message} onChange={handleChange} required />
-            </div>
+        <div className="contact-form-grid">
+          <div className="contact-field">
+            <label className="contact-label">First name *</label>
+            <input className="contact-input" type="text" />
           </div>
-          <button type="submit" className="contact-submit">Submit</button>
-        </form>
+          <div className="contact-field">
+            <label className="contact-label">Last name *</label>
+            <input className="contact-input" type="text" />
+          </div>
+          <div className="contact-field">
+            <label className="contact-label">Email *</label>
+            <input className="contact-input" type="email" />
+          </div>
+          <div className="contact-field">
+            <label className="contact-label">Phone</label>
+            <input className="contact-input" type="tel" />
+          </div>
+          <div className="contact-field contact-field-full">
+            <label className="contact-label">Message *</label>
+            <textarea className="contact-input contact-textarea" rows={4} />
+          </div>
+        </div>
+        <button className="contact-submit">Submit</button>
       </div>
     </section>
   );
