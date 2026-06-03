@@ -34,24 +34,28 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        setEroare(data.error || 'Eroare la autentificare.');
+        setEroare(data.error || 'Authentication error.');
         return;
       }
 
-      if (data.rol !== rolAsteptat) {
-        setEroare(`Acest cont nu are permisiuni de ${rolAsteptat}!`);
+      // Transformăm ambele roluri în litere mici pentru o comparație perfectă
+      const serverRole = String(data.rol || 'chirias').toLowerCase();
+      const expectedRole = String(rolAsteptat).toLowerCase();
+
+      if (serverRole !== expectedRole) {
+        setEroare(`This account does not have ${expectedRole} permissions!`);
         return;
       }
 
-      login({ id: data.id, role: data.rol, email }, data.token);
+      login({ id: data.id, role: serverRole, email }, data.token);
 
-      if (data.rol === 'manager') {
+      if (serverRole === 'manager') {
         navigate('/manager/dashboard');
       } else {
         navigate('/chirias/dashboard');
       }
     } catch {
-      setEroare('Eroare de conexiune la server.');
+      setEroare('Server connection error.');
     } finally {
       setLoading(false);
     }

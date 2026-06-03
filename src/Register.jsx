@@ -16,28 +16,31 @@ function Register() {
     setMesaj({ tip: '', text: '' });
 
     if (parola !== confirmaParola) {
-      setMesaj({ tip: 'eroare', text: 'Parolele nu coincid.' });
+      setMesaj({ tip: 'eroare', text: 'Passwords do not match.' });
       return;
     }
 
     if (parola.length < 6) {
-      setMesaj({ tip: 'eroare', text: 'Parola trebuie să aibă minim 6 caractere.' });
+      setMesaj({ tip: 'eroare', text: 'Password must be at least 6 characters long.' });
       return;
     }
 
     setLoading(true);
 
     try {
+      // Ne asigurăm că trimitem mereu rolul scris cu litere mici
+      const validRole = rol ? rol.toLowerCase() : 'chirias';
+
       const response = await fetch('https://management-apartamente-api.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, parola, rol, nume }),
+        body: JSON.stringify({ email, parola, rol: validRole, nume }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setMesaj({ tip: 'eroare', text: data.error || 'A apărut o eroare la crearea contului.' });
+        setMesaj({ tip: 'eroare', text: data.error || 'An error occurred while creating the account.' });
         setLoading(false);
         return;
       }
@@ -45,7 +48,7 @@ function Register() {
       setMesaj({ tip: 'succes', text: 'Account created successfully! Redirecting to login...' });
       setTimeout(() => navigate('/login'), 2000);
     } catch {
-      setMesaj({ tip: 'eroare', text: 'Eroare de conexiune la server.' });
+      setMesaj({ tip: 'eroare', text: 'Server connection error.' });
       setLoading(false);
     }
   };
@@ -84,8 +87,8 @@ function Register() {
                 <button
                   onClick={() => setRol('manager')}
                   style={{ padding: '30px', border: '1px solid rgba(29,29,27,0.15)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; e.currentTarget.style.color = '#fff' }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; e.currentTarget.style.color = '#1d1d1b' }}
                 >
                   <div>
                     <div style={{ fontSize: '20px', color: 'inherit', fontWeight: 500, marginBottom: '6px' }}>Manager</div>
@@ -97,8 +100,8 @@ function Register() {
                 <button
                   onClick={() => setRol('chirias')}
                   style={{ padding: '30px', border: '1px solid rgba(29,29,27,0.15)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; e.currentTarget.style.color = '#fff' }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; e.currentTarget.style.color = '#1d1d1b' }}
                 >
                   <div>
                     <div style={{ fontSize: '20px', color: 'inherit', fontWeight: 500, marginBottom: '6px' }}>Tenant</div>
