@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import mockApi from './api/mockApi';
 import RevenueChart from './components/RevenueChart';
-import MaintenanceChart from './components/MaintenanceChart';
-import InvoiceBreakdown from './components/InvoiceBreakdown';
 
 export default function ManagerDashboard() {
   const [tenants, setTenants] = useState([]);
@@ -123,20 +121,6 @@ export default function ManagerDashboard() {
               <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Revenue Analysis</span>
               <h3 style={{ fontFamily: 'Forum, serif', fontSize: '24px', fontWeight: 400, color: '#1d1d1b', margin: '0 0 30px 0' }}>Monthly Overview</h3>
               <RevenueChart months={6} />
-            </div>
-
-            <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '40px', background: '#fff' }}>
-              <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Maintenance</span>
-              <h3 style={{ fontFamily: 'Forum, serif', fontSize: '24px', fontWeight: 400, color: '#1d1d1b', margin: '0 0 30px 0' }}>Requests by Status</h3>
-              <MaintenanceChart />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', marginBottom: '2px' }}>
-            <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '40px', background: '#fff' }}>
-              <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Invoices</span>
-              <h3 style={{ fontFamily: 'Forum, serif', fontSize: '24px', fontWeight: 400, color: '#1d1d1b', margin: '0 0 30px 0' }}>Paid vs Unpaid</h3>
-              <InvoiceBreakdown />
             </div>
 
             <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '40px', background: '#fff' }}>

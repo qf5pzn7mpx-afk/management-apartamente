@@ -7,7 +7,12 @@ function AdaugaChirias() {
   const [ap, setAp] = useState('');
   const [email, setEmail] = useState('');
   const [telefon, setTelefon] = useState('');
+  const [dataInceput, setDataInceput] = useState('');
+  const [dataSfarsit, setDataSfarsit] = useState('');
+  const [chirie, setChirie] = useState('');
   const [eroare, setEroare] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [succes, setSucces] = useState(false);
   const navigate = useNavigate();
 
   const handleSave = async () => {
@@ -15,84 +20,161 @@ function AdaugaChirias() {
       setEroare('Te rugăm să completezi numele și numărul apartamentului!');
       return;
     }
-
+    setLoading(true);
+    setEroare('');
     try {
       const { addTenant } = await import('./api/mockApi');
-      await addTenant({ nume: nume, apartament_id: ap, email: email, telefon: telefon });
-      navigate('/');
+      await addTenant({ nume, apartament_id: ap, email, telefon, data_inceput: dataInceput, data_sfarsit: dataSfarsit, chirie });
+      setSucces(true);
+      setTimeout(() => navigate('/manager/tenants'), 1500);
     } catch (err) {
       setEroare('Nu mă pot conecta la server: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-black">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div className="flex flex-col items-center pt-10">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg border-t-4 border-indigo-500">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Adaugă Chiriaș Nou</h2>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '100px 30px 60px' }}>
 
-          {eroare && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded border border-red-200">
-              {eroare}
-            </div>
-          )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '50px' }}>
+          <div>
+            <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>Manager Panel</span>
+            <h1 style={{ fontFamily: 'Forum, serif', fontSize: '52px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: 0 }}>
+              Add New<br />Tenant
+            </h1>
+          </div>
+          <Link
+            to="/manager/tenants"
+            style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '2px', marginTop: '8px' }}
+          >
+            ← Back
+          </Link>
+        </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Nume Complet *</label>
+        {eroare && (
+          <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: '14px 20px', marginBottom: '30px', color: '#cc0000', fontSize: '14px' }}>
+            {eroare}
+          </div>
+        )}
+
+        {succes && (
+          <div style={{ background: '#f0fff0', border: '1px solid #ccffcc', padding: '14px 20px', marginBottom: '30px', color: '#007700', fontSize: '14px' }}>
+            ✓ Tenant added successfully! Redirecting...
+          </div>
+        )}
+
+        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+
+          <div style={{ marginBottom: '12px' }}>
+            <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>Personal Information</span>
+          </div>
+          <div style={{ borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '30px', marginBottom: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Full Name *</label>
               <input
                 type="text"
                 value={nume}
-                onChange={(e) => setNume(e.target.value)}
-                className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 text-black"
+                onChange={e => setNume(e.target.value)}
                 placeholder="ex: Ion Popescu"
+                style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
               />
             </div>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Număr Apartament *</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Apartment Number *</label>
               <input
                 type="text"
                 value={ap}
-                onChange={(e) => setAp(e.target.value)}
-                className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 text-black"
+                onChange={e => setAp(e.target.value)}
                 placeholder="ex: 12A"
+                style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
               />
             </div>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Email</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Email</label>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 text-black"
+                onChange={e => setEmail(e.target.value)}
                 placeholder="email@exemplu.com"
+                style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
               />
             </div>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Telefon</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Phone</label>
               <input
                 type="text"
                 value={telefon}
-                onChange={(e) => setTelefon(e.target.value)}
-                className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 text-black"
+                onChange={e => setTelefon(e.target.value)}
                 placeholder="07xx xxx xxx"
+                style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
               />
             </div>
           </div>
 
-          <div className="flex justify-between items-center mt-8">
-            <Link to="/" className="text-indigo-600 font-medium hover:underline">
-              &larr; Înapoi
+          <div style={{ marginBottom: '12px' }}>
+            <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>Lease Details</span>
+          </div>
+          <div style={{ borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '30px', marginBottom: '50px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '30px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Lease Start</label>
+              <input
+                type="date"
+                value={dataInceput}
+                onChange={e => setDataInceput(e.target.value)}
+                style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Lease End</label>
+              <input
+                type="date"
+                value={dataSfarsit}
+                onChange={e => setDataSfarsit(e.target.value)}
+                style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Monthly Rent (RON)</label>
+              <input
+                type="number"
+                value={chirie}
+                onChange={e => setChirie(e.target.value)}
+                placeholder="ex: 1500"
+                style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ background: '#fcfdf5', border: '1px solid rgba(29,29,27,0.08)', padding: '20px', marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '8px', height: '8px', background: '#1d1d1b', borderRadius: '50%', flexShrink: 0 }} />
+            <p style={{ margin: 0, fontSize: '13px', color: '#666', lineHeight: 1.6 }}>
+              After adding the tenant, they will receive access to their personal dashboard where they can view documents, invoices and submit maintenance requests.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Link
+              to="/manager/tenants"
+              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px' }}
+            >
+              Cancel
             </Link>
             <button
               onClick={handleSave}
-              className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition shadow-sm"
+              disabled={loading}
+              style={{ background: loading ? '#999' : '#1d1d1b', color: '#f9fafa', border: 'none', padding: '14px 50px', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', transition: 'opacity 0.2s' }}
+              onMouseOver={e => { if (!loading) e.currentTarget.style.opacity = '0.8'; }}
+              onMouseOut={e => e.currentTarget.style.opacity = '1'}
             >
-              Salvează Chiriaș
+              {loading ? 'Saving...' : 'Save Tenant'}
             </button>
           </div>
         </div>

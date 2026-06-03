@@ -110,12 +110,24 @@ function GestionareFacturi() {
               onChange={e => { setSearchTerm(e.target.value); setPaginaCurenta(1); }}
               style={{ padding: '10px 16px', border: '1px solid rgba(29,29,27,0.2)', background: '#fff', fontSize: '14px', fontFamily: 'Helvetica, sans-serif', outline: 'none', width: '220px' }}
             />
-            <Link
-              to="/adauga-factura"
-              style={{ background: '#1d1d1b', color: '#f9fafa', padding: '12px 28px', fontSize: '14px', textDecoration: 'none', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
-            >
-              + Add Invoice
-            </Link>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <Link
+                to="/manager/dashboard"
+                style={{ padding: '12px 28px', fontSize: '14px', textDecoration: 'none', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', border: '1px solid rgba(29,29,27,0.2)', color: '#1d1d1b', background: '#fff', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+                onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.color = '#f9fafa'; }}
+                onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#1d1d1b'; }}
+              >
+                ← Dashboard
+              </Link>
+              <Link
+                to="/adauga-factura"
+                style={{ background: '#1d1d1b', color: '#f9fafa', padding: '12px 28px', fontSize: '14px', textDecoration: 'none', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
+                onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
+                onMouseOut={e => e.currentTarget.style.opacity = '1'}
+              >
+                + Add Invoice
+              </Link>
+            </div>
           </div>
         </div>
 
