@@ -13,8 +13,8 @@ function WhyChooseUsSection() {
 
   const cardsData = [
     { id: '01', title: 'Excellent Property Maintenance', text: 'Add paragraph text. Click "Edit Text" to update the font, size and more. To change and reuse text themes, go to Site Styles.' },
-    { id: '02', title: 'Premium Location', text: 'Detalii despre poziționarea strategică a complexului rezidențial premium.' },
-    { id: '03', title: 'Modern Facilities', text: 'Facilități de top și administrare inteligentă oferite rezidenților noștri.' }
+    { id: '02', title: 'Premium Location', text: 'Strategic positioning in a premium residential area, offering easy access to the best parts of the city.' },
+    { id: '03', title: 'Modern Facilities', text: 'Top-tier facilities and smart property management solutions offered to all our residents.' }
   ];
 
   useGSAP(() => {
@@ -214,20 +214,52 @@ function TestimonialsSection() {
   const [showForm, setShowForm] = React.useState(false);
   const [name, setName] = React.useState('');
   const [message, setMessage] = React.useState('');
-  const [testimonials, setTestimonials] = React.useState([
-    { quote: "Working with this team has been an absolute pleasure. Our property has never been better managed, and our tenants are always happy.", author: "Ramsey Amir, NY" },
-    { quote: "They handled everything from tenant placement to maintenance without us lifting a finger. Truly a stress-free experience.", author: "Jessica Moore, CA" },
-    { quote: "Professional, responsive, and trustworthy. I wouldn't trust anyone else with my properties.", author: "Daniel Carter, TX" },
-  ]);
+  const [testimonials, setTestimonials] = React.useState([]); 
 
-  const handleSubmit = () => {
+  React.useEffect(() => {
+    fetch('https://management-apartamente-api.onrender.com/api/reviews')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setTestimonials(data);
+        } else {
+          setTestimonials([
+            { quote: "Working with this team has been an absolute pleasure. Our property has never been better managed, and our tenants are always happy.", author: "Ramsey Amir, NY" },
+            { quote: "They handled everything from tenant placement to maintenance without us lifting a finger. Truly a stress-free experience.", author: "Jessica Moore, CA" }
+          ]);
+        }
+      })
+      .catch(err => console.error("Error loading reviews:", err));
+  }, []);
+
+  const handleSubmit = async () => {
     if (!name.trim() || !message.trim()) return;
+    
     const newTestimonial = { quote: message, author: name };
-    setTestimonials(prev => [...prev, newTestimonial]);
-    setCurrent(testimonials.length);
-    setName('');
-    setMessage('');
-    setShowForm(false);
+
+    try {
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newTestimonial)
+      });
+
+      if (response.ok) {
+        setTestimonials(prev => [...prev, newTestimonial]);
+        setCurrent(testimonials.length); 
+        setName('');
+        setMessage('');
+        setShowForm(false);
+        alert("Review saved successfully!");
+      } else {
+        alert("An error occurred while saving the review.");
+      }
+    } catch (error) {
+      console.error("Connection error:", error);
+      alert("Server connection error.");
+    }
   };
 
   return (
@@ -260,15 +292,17 @@ function TestimonialsSection() {
         </div>
       )}
 
-      <div className="testimonials-card">
-        <button className="testimonials-arrow left" onClick={() => setCurrent((current - 1 + testimonials.length) % testimonials.length)}>‹</button>
-        <div className="testimonials-body">
-          <p className="testimonials-quote">"{testimonials[current].quote}"</p>
-          <div className="testimonials-divider" />
-          <p className="testimonials-author">{testimonials[current].author}</p>
+      {testimonials.length > 0 && (
+        <div className="testimonials-card">
+          <button className="testimonials-arrow left" onClick={() => setCurrent((current - 1 + testimonials.length) % testimonials.length)}>‹</button>
+          <div className="testimonials-body">
+            <p className="testimonials-quote">"{testimonials[current].quote}"</p>
+            <div className="testimonials-divider" />
+            <p className="testimonials-author">{testimonials[current].author}</p>
+          </div>
+          <button className="testimonials-arrow right" onClick={() => setCurrent((current + 1) % testimonials.length)}>›</button>
         </div>
-        <button className="testimonials-arrow right" onClick={() => setCurrent((current + 1) % testimonials.length)}>›</button>
-      </div>
+      )}
     </section>
   );
 }
@@ -401,7 +435,7 @@ export default function Home() {
                   cursor: 'pointer'
                 }}
               >
-                Începe acum
+                Get Started
               </motion.button>
             </Link>
           </div>

@@ -18,7 +18,7 @@ app.use(express.json());
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Acces interzis. Lipsesc credențialele.' });
+    return res.status(401).json({ error: 'Access denied. Missing credentials.' });
   }
 
   const token = authHeader.split(' ')[1];
@@ -26,14 +26,14 @@ const verifyToken = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; 
   } catch (err) {
-    res.status(401).json({ error: 'Token invalid sau expirat.' });
+    res.status(401).json({ error: 'Invalid or expired token.' });
   }
 };
 
 const authorizeRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user || !allowedRoles.includes(req.user.rol)) {
-      return res.status(403).json({ error: 'Nu ai permisiunea pentru această acțiune!' });
+      return res.status(403).json({ error: 'You do not have permission for this action!' });
     }
     next();
   };
@@ -51,7 +51,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Crearea tabelelor (Am actualizat tabelul mesaje_contact)
+// Database Schema
 db.exec(`
   CREATE TABLE IF NOT EXISTS utilizatori (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,9 +116,17 @@ db.exec(`
     message TEXT NOT NULL,
     data_trimiterii TEXT DEFAULT (datetime('now'))
   );
+
+  -- Noul tabel pentru recenzii
+  CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    author TEXT NOT NULL,
+    quote TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `);
 
-// --- RUTE ---
+// --- ROUTES ---
 
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -129,10 +137,10 @@ app.post('/api/auth/register', async (req, res) => {
       'INSERT INTO utilizatori (email, parola, rol) VALUES (?, ?, ?)'
     ).run(email, hashedPassword, rol || 'chirias');
     
-    res.status(201).json({ success: true, id: r.lastInsertRowid, mesaj: 'Utilizator creat' });
+    res.status(201).json({ success: true, id: r.lastInsertRowid, message: 'User created successfully' });
   } catch (err) {
     if (err.message.includes('UNIQUE constraint failed')) {
-      return res.status(400).json({ error: 'Acest email este deja folosit.' });
+      return res.status(400).json({ error: 'This email is already in use.' });
     }
     res.status(500).json({ error: err.message });
   }
@@ -143,10 +151,10 @@ app.post('/api/auth/login', async (req, res) => {
     const { email, parola } = req.body;
     
     const user = db.prepare('SELECT * FROM utilizatori WHERE email = ?').get(email);
-    if (!user) return res.status(401).json({ error: 'Email sau parolă incorectă' });
+    if (!user) return res.status(401).json({ error: 'Incorrect email or password' });
     
     const isMatch = await bcrypt.compare(parola, user.parola);
-    if (!isMatch) return res.status(401).json({ error: 'Email sau parolă incorectă' });
+    if (!isMatch) return res.status(401).json({ error: 'Incorrect email or password' });
     
     const token = jwt.sign(
       { id: user.id, rol: user.rol }, 
@@ -161,7 +169,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/test', (req, res) => {
-  res.json({ mesaj: "Conexiune excelentă! Serverul este online." });
+  res.json({ message: "Excellent connection! The server is online." });
 });
 
 app.get('/api/chiriasi', (req, res) => {
@@ -182,7 +190,7 @@ app.post('/api/chiriasi', verifyToken, authorizeRole('manager'), (req, res) => {
     
     res.json({ success: true, id: r.lastInsertRowid });
   } catch (err) {
-    console.error("Eroare la salvare:", err);
+    console.error("Error saving data:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -192,13 +200,13 @@ app.delete('/api/chiriasi/:id', verifyToken, authorizeRole('manager'), (req, res
     const info = db.prepare('DELETE FROM chiriasi WHERE id = ?').run(req.params.id);
     
     if (info.changes > 0) {
-      console.log(`🗑️ Chiriașul cu ID-ul ${req.params.id} a fost șters.`);
+      console.log(`🗑️ Tenant with ID ${req.params.id} was deleted.`);
       res.json({ success: true });
     } else {
-      res.status(404).json({ error: 'Chiriașul nu a fost găsit.' });
+      res.status(404).json({ error: 'Tenant not found.' });
     }
   } catch (err) {
-    console.error("Eroare la ștergerea chiriașului:", err);
+    console.error("Error deleting tenant:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -269,7 +277,7 @@ app.post('/api/documente', upload.single('fisier'), (req, res) => {
     const { nume_fisier, tip, chirias_id } = req.body;
     
     if (!req.file) {
-      return res.status(400).json({ success: false, error: 'Te rog să încarci un fișier valid.' });
+      return res.status(400).json({ success: false, error: 'Please upload a valid file.' });
     }
 
     const cale = `/uploads/${req.file.filename}`;
@@ -279,11 +287,11 @@ app.post('/api/documente', upload.single('fisier'), (req, res) => {
       VALUES (?, ?, ?, ?)
     `).run(nume_fisier, tip, chirias_id, cale);
 
-    console.log(`📄 Document nou adăugat: ${nume_fisier} (ID: ${info.lastInsertRowid})`);
+    console.log(`📄 New document added: ${nume_fisier} (ID: ${info.lastInsertRowid})`);
   
     res.json({ success: true, id: info.lastInsertRowid });
   } catch (err) {
-    console.error("Eroare la salvarea documentului:", err);
+    console.error("Error saving document:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -293,28 +301,26 @@ app.delete('/api/documente/:id', (req, res) => {
     const info = db.prepare('DELETE FROM documente WHERE id = ?').run(req.params.id);
     
     if (info.changes > 0) {
-      console.log(`🗑️ Documentul cu ID-ul ${req.params.id} a fost șters din baza de date.`);
+      console.log(`🗑️ Document with ID ${req.params.id} deleted from the database.`);
       res.json({ success: true });
     } else {
-      res.status(404).json({ error: 'Documentul nu a fost găsit.' });
+      res.status(404).json({ error: 'Document not found.' });
     }
   } catch (err) {
-    console.error("Eroare la ștergerea documentului:", err);
+    console.error("Error deleting document:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Ruta GET pentru a citi mesajele
 app.get('/api/contact', (req, res) => {
   res.json(db.prepare('SELECT * FROM mesaje_contact ORDER BY id DESC').all());
 });
 
-// Ruta POST actualizată pentru noul formular
 app.post('/api/contact', (req, res) => {
   const { firstName, lastName, email, phone, message } = req.body;
   
   if (!firstName || !lastName || !email || !message) {
-    return res.status(400).json({ error: 'Câmpurile First name, Last name, Email și Message sunt obligatorii.' });
+    return res.status(400).json({ error: 'First name, Last name, Email and Message fields are required.' });
   }
   
   try {
@@ -322,12 +328,41 @@ app.post('/api/contact', (req, res) => {
       'INSERT INTO mesaje_contact (firstName, lastName, email, phone, message) VALUES (?, ?, ?, ?, ?)'
     ).run(firstName, lastName, email, phone || '', message);
     
-    res.json({ success: true, id: r.lastInsertRowid, mesaj: 'Mesajul a fost trimis cu succes!' });
+    res.json({ success: true, id: r.lastInsertRowid, message: 'Message sent successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- NOILE RUTE PENTRU REVIEWS ---
+
+app.get('/api/reviews', (req, res) => {
+  try {
+    const reviews = db.prepare('SELECT * FROM reviews ORDER BY id ASC').all();
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/reviews', (req, res) => {
+  const { author, quote } = req.body;
+  
+  if (!author || !quote) {
+    return res.status(400).json({ error: 'Author and quote fields are required.' });
+  }
+  
+  try {
+    const r = db.prepare(
+      'INSERT INTO reviews (author, quote) VALUES (?, ?)'
+    ).run(author, quote);
+    
+    res.status(201).json({ success: true, id: r.lastInsertRowid, message: 'Review saved successfully!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server pornit pe http://localhost:${PORT}`);
+  console.log(`Server started on http://localhost:${PORT}`);
 });
