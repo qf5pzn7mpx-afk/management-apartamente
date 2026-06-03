@@ -32,7 +32,7 @@ import ChiriasMaintenance from './chirias/Maintenance';
 import TenantDocuments from './TenantDocuments';
 
 function App() {
-  const [mesajServer, setMesajServer] = useState('Se încarcă...');
+  const [mesajServer, setMesajServer] = useState('Loading...');
   const [chiriasi, setChiriasi] = useState([]);
 
   useEffect(() => {
@@ -45,9 +45,9 @@ function App() {
 
     fetch('https://management-apartamente-api.onrender.com/api/test')
       .then((res) => res.json())
-      .then((data) => setMesajServer(data.mesaj))
+      .then((data) => setMesajServer(data.message)) // Am schimbat din .mesaj în .message
       .catch(() =>
-        setMesajServer('Eroare: Serverul backend este oprit.')
+        setMesajServer('Error: Backend server is offline.') // Tradus în engleză
       );
   }, []);
 
@@ -66,10 +66,11 @@ function App() {
           borderRadius: '8px',
         }}
       >
-        <strong>Status Server: </strong>
+        <strong>Server Status: </strong>
         <span
           style={{
-            color: mesajServer.includes('Eroare') ? 'red' : 'blue',
+            // Am adăugat semnul ? și căutăm cuvântul Error în loc de Eroare
+            color: mesajServer?.includes('Error') ? 'red' : 'blue',
           }}
         >
           {mesajServer}
@@ -102,7 +103,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard chiriasi={chiriasi} />} />
             <Route path="/adauga-chirias" element={<AdaugaChirias adaugaChirias={adaugaChirias} />} />
             <Route path="/adauga-factura" element={<AdaugaFactura />} />
-            <Route path="/adauga-document" element={<AdaugaDocument />} /> {/* Rută temporar neprotejată */}
+            <Route path="/adauga-document" element={<AdaugaDocument />} /> 
 
             <Route path="/facturi" element={<ProtectedRoute allowedRoles={['manager']}><GestionareFacturi /></ProtectedRoute>} />
             <Route path="/mentenanta" element={<ProtectedRoute allowedRoles={['manager']}><GestionareMentenanta /></ProtectedRoute>} />
