@@ -1,23 +1,12 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from './AuthContext';
 
-function Navbar({ onSearch, onFilter }) {
+function Navbar() {
   const [meniuDeschis, setMeniuDeschis] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState('');
-
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext) || {};
   const userRole = user?.role;
-
-  const roleLabel =
-    userRole === 'manager'
-      ? 'Manager'
-      : userRole === 'chirias'
-      ? 'Chiriaș'
-      : null;
 
   const handleLogout = () => {
     logout();
@@ -25,304 +14,151 @@ function Navbar({ onSearch, onFilter }) {
     navigate('/');
   };
 
-  const handleLoginClick = () => {
-    navigate('/login');
+  const linkStyle = {
+    fontSize: '14px',
+    color: '#1d1d1b',
+    textDecoration: 'none',
+    fontFamily: 'Helvetica, sans-serif',
+    transition: 'opacity 0.2s',
   };
 
-  const handleSearch = () => {
-    if (onSearch) {
-      onSearch(searchTerm);
-    }
-  };
-
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value);
-
-    if (onFilter) {
-      onFilter(event.target.value);
-    }
-  };
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    ...(userRole === 'manager' ? [{ to: '/manager/dashboard', label: 'Dashboard' }] : []),
+    ...(userRole === 'chirias' ? [{ to: '/chirias/dashboard', label: 'Dashboard' }] : []),
+    { to: '/facturi', label: 'Invoices' },
+    { to: '/mentenanta', label: 'Maintenance' },
+    { to: '/documente', label: 'Documents' },
+    { to: '/contact', label: 'Contact' },
+  ];
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-lg">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-400 shadow-md">
-              <svg
-                width="26"
-                height="26"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#111827"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 10.5L12 3l9 7.5" />
-                <path d="M5 9.5V21h14V9.5" />
-                <path d="M9 21v-6h6v6" />
-              </svg>
-            </div>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, background: '#f9fafa', borderBottom: '1px solid rgba(29,29,27,0.08)', fontFamily: 'Helvetica, sans-serif' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
 
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-extrabold tracking-wide text-white">
-                ApartManager
-              </h1>
-              <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
-                Property Management
-              </p>
-            </div>
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <span style={{ fontWeight: 'bold', fontSize: '18px', color: '#1d1d1b', fontFamily: 'Helvetica, sans-serif' }}>EIF</span>
           </Link>
 
-          <div className="hidden items-center gap-4 md:flex">
-            <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Caută chiriași..."
-                className="bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
-              />
-
-              <button
-                onClick={handleSearch}
-                className="rounded-lg bg-yellow-400 px-3 py-1 text-sm font-semibold text-black transition hover:bg-yellow-300"
-              >
-                Caută
-              </button>
-            </div>
-
-            <select
-              value={filter}
-              onChange={handleFilterChange}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none"
-            >
-              <option value="">Toate</option>
-              <option value="status_paid">Plătite</option>
-              <option value="status_unpaid">Neplătite</option>
-              <option value="status_pending">În așteptare</option>
-            </select>
-
-            <Link
-              to="/"
-              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
-            >
-              Acasă
-            </Link>
-
-            {userRole === 'manager' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }} className="desktop-nav">
+            {navLinks.map(link => (
               <Link
-                to="/manager/dashboard"
-                className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
+                key={link.to}
+                to={link.to}
+                style={linkStyle}
+                onMouseOver={e => e.currentTarget.style.opacity = '0.5'}
+                onMouseOut={e => e.currentTarget.style.opacity = '1'}
               >
-                Panou Manager
+                {link.label}
               </Link>
-            )}
+            ))}
+          </div>
 
-            {userRole === 'chirias' && (
-              <Link
-                to="/chirias/dashboard"
-                className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
-              >
-                Panou Chiriaș
-              </Link>
-            )}
-
-            <Link
-              to="/contact"
-              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
-            >
-              Contact
-            </Link>
-
-            <Link
-              to="/facturi"
-              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
-            >
-              Facturi
-            </Link>
-
-            <Link
-              to="/mentenanta"
-              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
-            >
-              Mentenanță
-            </Link>
-
-            <Link
-              to="/documente"
-              className="text-sm font-medium text-slate-200 transition hover:text-yellow-400"
-            >
-              Documente
-            </Link>
-
-            {roleLabel && (
-              <span className="rounded-full bg-yellow-400 px-4 py-2 text-xs font-bold text-black shadow-md">
-                {roleLabel}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {userRole && (
+              <span style={{ fontSize: '12px', letterSpacing: '0.15em', color: '#888', textTransform: 'uppercase', display: 'none' }} className="role-badge">
+                {userRole === 'manager' ? 'Manager' : 'Tenant'}
               </span>
             )}
 
             {userRole ? (
               <button
                 onClick={handleLogout}
-                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
+                style={{ background: 'none', border: '1px solid rgba(29,29,27,0.2)', padding: '8px 20px', fontSize: '13px', color: '#1d1d1b', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s' }}
+                onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.color = '#f9fafa'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#1d1d1b'; }}
               >
-                Ieși
+                Sign Out
               </button>
             ) : (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleLoginClick}
-                className="rounded-xl bg-yellow-400 px-5 py-2 text-sm font-bold text-black shadow-lg transition hover:bg-yellow-300"
+              <button
+                onClick={() => navigate('/login')}
+                style={{ background: '#1d1d1b', border: 'none', padding: '10px 24px', fontSize: '13px', color: '#f9fafa', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', transition: 'opacity 0.2s' }}
+                onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
+                onMouseOut={e => e.currentTarget.style.opacity = '1'}
               >
-                Conectează-te
-              </motion.button>
+                Sign In
+              </button>
             )}
-          </div>
 
-          <button
-            onClick={() => setMeniuDeschis(!meniuDeschis)}
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-400 text-black shadow-md md:hidden"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
+            <button
+              onClick={() => setMeniuDeschis(!meniuDeschis)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}
+              className="hamburger-btn"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 7h16M4 12h16M4 17h16"
-              />
-            </svg>
-          </button>
+              <span style={{ display: 'block', width: '24px', height: '1px', background: '#1d1d1b', transition: 'all 0.3s', transform: meniuDeschis ? 'translateY(6px) rotate(45deg)' : 'none' }} />
+              <span style={{ display: 'block', width: '24px', height: '1px', background: '#1d1d1b', transition: 'all 0.3s', opacity: meniuDeschis ? 0 : 1 }} />
+              <span style={{ display: 'block', width: '24px', height: '1px', background: '#1d1d1b', transition: 'all 0.3s', transform: meniuDeschis ? 'translateY(-6px) rotate(-45deg)' : 'none' }} />
+            </button>
+          </div>
         </div>
 
-        <AnimatePresence>
-          {meniuDeschis && (
-            <motion.div
-              initial={{ opacity: 0, y: -15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25 }}
-              className="border-t border-slate-800 bg-slate-950 px-6 py-5 md:hidden"
-            >
-              <div className="mb-4 flex flex-col gap-3">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Caută..."
-                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
-                />
-
-                <select
-                  value={filter}
-                  onChange={handleFilterChange}
-                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+        {meniuDeschis && (
+          <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, bottom: 0, background: '#f9fafa', zIndex: 999, display: 'flex', flexDirection: 'column', padding: '60px 40px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+              {navLinks.map((link, i) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMeniuDeschis(false)}
+                  style={{ fontFamily: 'Forum, serif', fontSize: '42px', fontWeight: 400, color: '#1d1d1b', textDecoration: 'none', padding: '16px 0', borderBottom: '1px solid rgba(29,29,27,0.08)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'opacity 0.2s' }}
+                  onMouseOver={e => e.currentTarget.style.opacity = '0.4'}
+                  onMouseOut={e => e.currentTarget.style.opacity = '1'}
                 >
-                  <option value="">Toate</option>
-                  <option value="status_paid">Plătite</option>
-                  <option value="status_unpaid">Neplătite</option>
-                  <option value="status_pending">În așteptare</option>
-                </select>
+                  <span>{link.label}</span>
+                  <span style={{ fontSize: '24px', opacity: 0.3 }}>→</span>
+                </Link>
+              ))}
+            </div>
 
+            <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '40px', borderTop: '1px solid rgba(29,29,27,0.08)' }}>
+              {userRole && (
+                <span style={{ fontSize: '12px', letterSpacing: '0.2em', color: '#888', textTransform: 'uppercase' }}>
+                  Signed in as {userRole === 'manager' ? 'Manager' : 'Tenant'}
+                </span>
+              )}
+              {userRole ? (
                 <button
-                  onClick={handleSearch}
-                  className="rounded-xl bg-yellow-400 px-4 py-3 font-bold text-black"
+                  onClick={handleLogout}
+                  style={{ background: '#1d1d1b', border: 'none', padding: '14px 32px', fontSize: '14px', color: '#f9fafa', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em' }}
                 >
-                  Caută
+                  Sign Out
                 </button>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Link
-                  to="/"
-                  onClick={() => setMeniuDeschis(false)}
-                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
+              ) : (
+                <button
+                  onClick={() => { setMeniuDeschis(false); navigate('/login'); }}
+                  style={{ background: '#1d1d1b', border: 'none', padding: '14px 32px', fontSize: '14px', color: '#f9fafa', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em' }}
                 >
-                  Acasă
-                </Link>
-
-                {userRole === 'manager' && (
-                  <Link
-                    to="/manager/dashboard"
-                    onClick={() => setMeniuDeschis(false)}
-                    className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
-                  >
-                    Panou Manager
-                  </Link>
-                )}
-
-                {userRole === 'chirias' && (
-                  <Link
-                    to="/chirias/dashboard"
-                    onClick={() => setMeniuDeschis(false)}
-                    className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
-                  >
-                    Panou Chiriaș
-                  </Link>
-                )}
-
-                <Link
-                  to="/contact"
-                  onClick={() => setMeniuDeschis(false)}
-                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
-                >
-                  Contact
-                </Link>
-
-                <Link
-                  to="/facturi"
-                  onClick={() => setMeniuDeschis(false)}
-                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
-                >
-                  Facturi
-                </Link>
-
-                <Link
-                  to="/mentenanta"
-                  onClick={() => setMeniuDeschis(false)}
-                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
-                >
-                  Mentenanță
-                </Link>
-
-                <Link
-                  to="/documente"
-                  onClick={() => setMeniuDeschis(false)}
-                  className="rounded-xl px-4 py-3 text-slate-200 transition hover:bg-slate-800"
-                >
-                  Documente
-                </Link>
-
-                {userRole ? (
-                  <button
-                    onClick={handleLogout}
-                    className="mt-3 rounded-xl bg-red-500 px-4 py-3 font-semibold text-white"
-                  >
-                    Ieși
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setMeniuDeschis(false);
-                      handleLoginClick();
-                    }}
-                    className="mt-3 rounded-xl bg-yellow-400 px-4 py-3 font-bold text-black"
-                  >
-                    Conectează-te
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  Sign In
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
+
+      <style>{`
+        .desktop-nav {
+          display: flex;
+        }
+        .hamburger-btn {
+          display: none;
+        }
+        @media (max-width: 768px) {
+          .desktop-nav {
+            display: none !important;
+          }
+          .hamburger-btn {
+            display: flex !important;
+          }
+        }
+        @media (min-width: 769px) {
+          .hamburger-btn {
+            display: flex;
+          }
+        }
+      `}</style>
     </>
   );
 }

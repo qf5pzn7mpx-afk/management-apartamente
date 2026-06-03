@@ -1,28 +1,37 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import Navbar from './Navbar';
 
 function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [parola, setParola] = useState('');
-  const [rol, setRol] = useState('chirias'); 
-  const [mesaj, setMesaj] = useState({ tip: '', text: '' }); 
+  const [confirmaParola, setConfirmaParola] = useState('');
+  const [nume, setNume] = useState('');
+  const [rol, setRol] = useState(null);
+  const [mesaj, setMesaj] = useState({ tip: '', text: '' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMesaj({ tip: '', text: '' });
+
+    if (parola !== confirmaParola) {
+      setMesaj({ tip: 'eroare', text: 'Parolele nu coincid.' });
+      return;
+    }
+
+    if (parola.length < 6) {
+      setMesaj({ tip: 'eroare', text: 'Parola trebuie să aibă minim 6 caractere.' });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch('https://management-apartamente-api.onrender.com/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, parola, rol }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, parola, rol, nume }),
       });
 
       const data = await response.json();
@@ -33,96 +42,180 @@ function Register() {
         return;
       }
 
-      setMesaj({ tip: 'succes', text: 'Cont creat cu succes! Te redirecționăm spre login...' });
-      
-      
-      setTimeout(() => {
-        navigate('/'); 
-      }, 2000);
-
-    } catch (err) {
+      setMesaj({ tip: 'succes', text: 'Account created successfully! Redirecting to login...' });
+      setTimeout(() => navigate('/login'), 2000);
+    } catch {
       setMesaj({ tip: 'eroare', text: 'Eroare de conexiune la server.' });
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.18),_transparent_24%),#0f172a] text-white">
-      <Navbar />
-      <div className="mx-auto flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-        
-        <motion.section 
-          initial={{ opacity: 0, y: 30 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.65, ease: 'easeOut' }} 
-          className="w-full max-w-md rounded-[36px] border border-white/10 bg-slate-950/80 p-8 shadow-2xl shadow-slate-950/40 backdrop-blur-xl sm:p-10"
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-semibold tracking-tight text-white">Creare Cont Nou</h2>
-            <p className="mt-2 text-sm text-slate-400">Completează datele de mai jos pentru a te înregistra.</p>
-          </div>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f0eb', fontFamily: 'Helvetica, sans-serif', display: 'flex', flexDirection: 'column' }}>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 50px', background: 'transparent', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}>
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <span style={{ fontFamily: 'Helvetica, sans-serif', fontWeight: 'bold', fontSize: '18px', color: '#1d1d1b' }}>EIF</span>
+        </Link>
+        <Link to="/login" style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '2px' }}>
+          Sign In
+        </Link>
+      </header>
+
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '120px 30px 60px' }}>
+        <div style={{ width: '100%', maxWidth: '580px' }}>
+
+          {!rol ? (
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-300">Rolul tău</label>
-              <select 
-                value={rol} 
-                onChange={(e) => setRol(e.target.value)} 
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-              >
-                <option value="chirias">Chiriaș</option>
-                <option value="manager">Manager</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-300">Adresa de Email</label>
-              <input 
-                type="email" 
-                placeholder="exemplu@email.com" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                required 
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500" 
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-300">Parola</label>
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                value={parola} 
-                onChange={(e) => setParola(e.target.value)} 
-                required 
-                minLength="6"
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500" 
-              />
-            </div>
-
-            {/* Afișarea mesajelor de eroare sau succes */}
-            {mesaj.text && (
-              <div className={`rounded-xl p-3 text-sm text-center ${mesaj.tip === 'eroare' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
-                {mesaj.text}
+              <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#e8f4e8', padding: '8px 16px', marginBottom: '30px' }}>
+                  <div style={{ width: '8px', height: '8px', background: '#2d7a2d', borderRadius: '50%' }} />
+                  <span style={{ fontSize: '12px', letterSpacing: '0.2em', color: '#2d7a2d', textTransform: 'uppercase' }}>New Account</span>
+                </div>
+                <h1 style={{ fontFamily: 'Forum, serif', fontSize: '56px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: '0 0 20px 0' }}>
+                  Create Your Account
+                </h1>
+                <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, margin: 0 }}>
+                  Select your role to get started
+                </p>
               </div>
-            )}
 
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-500/30 transition duration-200 hover:-translate-y-0.5 hover:shadow-sky-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Se procesează...' : 'Înregistrează-te'}
-            </button>
-          </form>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
+                <button
+                  onClick={() => setRol('manager')}
+                  style={{ padding: '30px', border: '1px solid rgba(29,29,27,0.15)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; }}
+                >
+                  <div>
+                    <div style={{ fontSize: '20px', color: 'inherit', fontWeight: 500, marginBottom: '6px' }}>Manager</div>
+                    <div style={{ fontSize: '14px', color: 'inherit', opacity: 0.6 }}>Full access to all properties, tenants and invoices</div>
+                  </div>
+                  <span style={{ fontSize: '24px', color: 'inherit' }}>→</span>
+                </button>
 
-          <div className="mt-8 text-center text-sm text-slate-400">
-            Ai deja un cont?{' '}
-            <Link to="/" className="font-semibold text-sky-400 hover:text-sky-300 transition-colors">
-              Loghează-te aici
-            </Link>
-          </div>
-        </motion.section>
+                <button
+                  onClick={() => setRol('chirias')}
+                  style={{ padding: '30px', border: '1px solid rgba(29,29,27,0.15)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; }}
+                >
+                  <div>
+                    <div style={{ fontSize: '20px', color: 'inherit', fontWeight: 500, marginBottom: '6px' }}>Tenant</div>
+                    <div style={{ fontSize: '14px', color: 'inherit', opacity: 0.6 }}>Access your documents, invoices and maintenance requests</div>
+                  </div>
+                  <span style={{ fontSize: '24px', color: 'inherit' }}>→</span>
+                </button>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(29,29,27,0.1)', paddingTop: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '14px', color: '#999' }}>Already have an account?</span>
+                <Link to="/login" style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '1px' }}>
+                  Sign in here →
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '50px' }}>
+                <button
+                  onClick={() => { setRol(null); setMesaj({ tip: '', text: '' }); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#999', padding: 0, fontFamily: 'Helvetica, sans-serif' }}
+                >
+                  ← Back
+                </button>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#e8f4e8', padding: '6px 14px' }}>
+                  <div style={{ width: '6px', height: '6px', background: '#2d7a2d', borderRadius: '50%' }} />
+                  <span style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#2d7a2d', textTransform: 'uppercase' }}>
+                    {rol === 'manager' ? 'Manager' : 'Tenant'} Registration
+                  </span>
+                </div>
+              </div>
+
+              <h2 style={{ fontFamily: 'Forum, serif', fontSize: '48px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', margin: '0 0 50px 0', lineHeight: 1.1 }}>
+                Create Your<br />Account
+              </h2>
+
+              {mesaj.text && (
+                <div style={{ padding: '14px 20px', marginBottom: '30px', fontSize: '14px', background: mesaj.tip === 'eroare' ? '#fff0f0' : '#f0fff0', border: `1px solid ${mesaj.tip === 'eroare' ? '#ffcccc' : '#ccffcc'}`, color: mesaj.tip === 'eroare' ? '#cc0000' : '#007700' }}>
+                  {mesaj.text}
+                </div>
+              )}
+
+              <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Full Name *</label>
+                    <input
+                      type="text"
+                      value={nume}
+                      onChange={e => setNume(e.target.value)}
+                      placeholder="John Smith"
+                      required
+                      style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Email *</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      required
+                      style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Password *</label>
+                      <input
+                        type="password"
+                        value={parola}
+                        onChange={e => setParola(e.target.value)}
+                        placeholder="Min. 6 characters"
+                        required
+                        minLength="6"
+                        style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Confirm Password *</label>
+                      <input
+                        type="password"
+                        value={confirmaParola}
+                        onChange={e => setConfirmaParola(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    style={{ background: loading ? '#999' : '#1d1d1b', color: '#f9fafa', border: 'none', padding: '18px', fontSize: '15px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', transition: 'opacity 0.2s', marginTop: '10px' }}
+                    onMouseOver={e => { if (!loading) e.currentTarget.style.opacity = '0.8'; }}
+                    onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    {loading ? 'Creating account...' : 'Create Account'}
+                  </button>
+                </form>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(29,29,27,0.1)', marginTop: '30px', paddingTop: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '14px', color: '#999' }}>Already have an account?</span>
+                <Link to="/login" style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '1px' }}>
+                  Sign in here →
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

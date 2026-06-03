@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 
 function RaporteazaProblema() {
   const [titlu, setTitlu] = useState('');
   const [descriere, setDescriere] = useState('');
-  const [urgenta, setUrgenta] = useState('Scăzută');
+  const [urgenta, setUrgenta] = useState('Low');
   const [poza, setPoza] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+  const [succes, setSucces] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSave = async () => {
@@ -20,19 +21,7 @@ function RaporteazaProblema() {
 
     setLoading(true);
 
-    const formData = new FormData();
-    formData.append('titlu', titlu);
-    formData.append('descriere', descriere);
-    formData.append('status', 'Nouă');
-    formData.append('chirias_id', 1); 
-    formData.append('apartament_id', 1);
-    
-    if (poza) {
-      formData.append('poza', poza);
-    }
-
     try {
-      // Use mock API instead of uploading
       const payload = {
         titlu,
         descriere,
@@ -42,11 +31,10 @@ function RaporteazaProblema() {
         urgenta,
         poza: poza ? poza.name : null,
       };
-      // lazy import mockApi to avoid circulars
       const { addMaintenance } = await import('./api/mockApi');
       await addMaintenance(payload);
-      alert('Problema a fost raportată cu succes!');
-      navigate('/');
+      setSucces(true);
+      setTimeout(() => navigate('/mentenanta'), 1500);
     } catch (err) {
       alert('Nu s-a putut contacta serverul: ' + err.message);
     } finally {
@@ -54,73 +42,169 @@ function RaporteazaProblema() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      <div className="flex flex-col items-center pt-10">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg border-t-4 border-orange-500">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Raportează o defecțiune</h2>
+  const urgentaOptions = [
+    { value: 'Low', label: 'Low', desc: 'Non-urgent, can wait', color: '#2d4a8a', bg: '#e8eef8' },
+    { value: 'Medium', label: 'Medium', desc: 'Needs attention soon', color: '#8a5a2d', bg: '#f8f0e8' },
+    { value: 'High', label: 'High', desc: 'Urgent, fix immediately', color: '#cc0000', bg: '#fff0f0' },
+  ];
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Titlu problemă</label>
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
+      <Navbar />
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 30px' }}>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '50px' }}>
+          <div>
+            <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>03 — Tenant Platform</span>
+            <h1 style={{ fontFamily: 'Forum, serif', fontSize: '52px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: 0 }}>
+              Report<br />An Issue
+            </h1>
+          </div>
+          <Link
+            to="/mentenanta"
+            style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '2px', marginTop: '8px' }}
+          >
+            ← Back
+          </Link>
+        </div>
+
+        {succes && (
+          <div style={{ background: '#f0fff0', border: '1px solid #ccffcc', padding: '14px 20px', marginBottom: '30px', color: '#007700', fontSize: '14px' }}>
+            ✓ Issue reported successfully! Redirecting...
+          </div>
+        )}
+
+        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+
+          <div style={{ marginBottom: '36px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Issue Title *</label>
             <input
               type="text"
               value={titlu}
-              onChange={(e) => setTitlu(e.target.value)}
-              placeholder="Ex: Robinet defect"
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-orange-500"
+              onChange={e => setTitlu(e.target.value)}
+              placeholder="Ex: Broken faucet in bathroom"
+              style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', boxSizing: 'border-box' }}
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Descriere detaliată</label>
+          <div style={{ marginBottom: '36px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Detailed Description *</label>
             <textarea
-              rows="4"
               value={descriere}
-              onChange={(e) => setDescriere(e.target.value)}
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-orange-500"
-            ></textarea>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Încarcă Poză (opțional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setPoza(e.target.files[0])}
-              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+              onChange={e => setDescriere(e.target.value)}
+              rows={5}
+              placeholder="Describe the issue in detail so the manager can address it quickly..."
+              style={{ width: '100%', padding: '16px', border: '1px solid rgba(29,29,27,0.15)', background: '#fcfdf5', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }}
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">Urgență</label>
-            <select
-              value={urgenta}
-              onChange={(e) => setUrgenta(e.target.value)}
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-orange-500"
-            >
-              <option>Scăzută</option>
-              <option>Medie</option>
-              <option>Critică</option>
-            </select>
+          <div style={{ marginBottom: '36px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Priority Level *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              {urgentaOptions.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setUrgenta(opt.value)}
+                  style={{
+                    padding: '16px',
+                    border: `1px solid ${urgenta === opt.value ? opt.color : 'rgba(29,29,27,0.15)'}`,
+                    background: urgenta === opt.value ? opt.bg : '#fff',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: 'Helvetica, sans-serif',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: urgenta === opt.value ? opt.color : '#1d1d1b', marginBottom: '4px' }}>{opt.label}</div>
+                  <div style={{ fontSize: '12px', color: '#999' }}>{opt.desc}</div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex justify-between items-center mt-8">
-            <Link to="/" className="text-orange-600 font-medium">
-              &larr; Înapoi
+          <div style={{ marginBottom: '50px' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Photo (optional)</label>
+            <div
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) setPoza(f); }}
+              onClick={() => document.getElementById('fotoInput').click()}
+              style={{
+                border: `2px dashed ${dragOver ? '#1d1d1b' : 'rgba(29,29,27,0.2)'}`,
+                padding: '40px 30px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                background: dragOver ? '#f5f5f0' : '#fcfdf5',
+                transition: 'all 0.2s',
+              }}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5" style={{ margin: '0 auto 14px' }}>
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              {poza ? (
+                <div>
+                  <p style={{ fontSize: '14px', color: '#1d1d1b', margin: '0 0 6px 0', fontWeight: 500 }}>{poza.name}</p>
+                  <p style={{ fontSize: '12px', color: '#999', margin: 0 }}>{(poza.size / 1024 / 1024).toFixed(2)} MB</p>
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: '14px', color: '#999', margin: '0 0 6px 0' }}>Drag & drop or click to upload a photo</p>
+                  <p style={{ fontSize: '12px', color: '#bbb', margin: 0 }}>JPG, PNG up to 10MB</p>
+                </>
+              )}
+              <input
+                id="fotoInput"
+                type="file"
+                accept="image/*"
+                onChange={e => setPoza(e.target.files[0])}
+                style={{ display: 'none' }}
+              />
+            </div>
+            {poza && (
+              <div style={{ marginTop: '12px', position: 'relative', display: 'inline-block' }}>
+                <img
+                  src={URL.createObjectURL(poza)}
+                  alt="preview"
+                  style={{ height: '120px', width: 'auto', objectFit: 'cover', border: '1px solid rgba(29,29,27,0.12)' }}
+                />
+                <button
+                  onClick={() => setPoza(null)}
+                  style={{ position: 'absolute', top: '6px', right: '6px', background: '#1d1d1b', color: '#f9fafa', border: 'none', width: '24px', height: '24px', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(29,29,27,0.1)', paddingTop: '30px' }}>
+            <Link
+              to="/mentenanta"
+              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px' }}
+            >
+              Cancel
             </Link>
-            <motion.button
+            <button
               onClick={handleSave}
               disabled={loading}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-              whileHover={{ scale: loading ? 1 : 1.05 }}
-              whileTap={{ scale: loading ? 1 : 0.95 }}
-              className={`px-6 py-2 text-white rounded-lg transition-all duration-200 shadow-lg ${loading ? 'bg-gray-400 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 hover:shadow-[0_0_25px_rgba(251,146,60,0.45)]'}`}
+              style={{
+                background: loading ? '#999' : '#1d1d1b',
+                color: '#f9fafa',
+                border: 'none',
+                padding: '14px 50px',
+                fontSize: '14px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'Helvetica, sans-serif',
+                letterSpacing: '0.05em',
+                transition: 'opacity 0.2s',
+              }}
+              onMouseOver={e => { if (!loading) e.currentTarget.style.opacity = '0.8'; }}
+              onMouseOut={e => e.currentTarget.style.opacity = '1'}
             >
-              {loading ? 'Se trimite...' : 'Trimite'}
-            </motion.button>
+              {loading ? 'Submitting...' : 'Submit Request'}
+            </button>
           </div>
         </div>
       </div>
