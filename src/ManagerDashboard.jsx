@@ -2,7 +2,6 @@ import Navbar from './Navbar';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import mockApi from './api/mockApi';
 import RevenueChart from './components/RevenueChart';
 
 export default function ManagerDashboard() {
@@ -14,21 +13,47 @@ export default function ManagerDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    Promise.all([
-      mockApi.getTenants().catch(() => []),
-      import('./api/mockApi').then(m => m.getDocuments()).catch(() => []),
-      import('./api/mockApi').then(m => m.getMaintenance ? m.getMaintenance() : []).catch(() => []),
-      mockApi.getInvoices ? mockApi.getInvoices().catch(() => []) : Promise.resolve([]),
-    ]).then(([t, d, c, f]) => {
-      setTenants(Array.isArray(t) ? t : []);
-      setDocumente(Array.isArray(d) ? d : []);
-      setCereri(Array.isArray(c) ? c : []);
-      setFacturi(Array.isArray(f) ? f : []);
-    }).finally(() => setLoading(false));
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const headers = { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        };
+
+        const baseUrl = 'https://management-apartamente-api.onrender.com/api';
+
+        // Tragem simultan absolut toate datele din baza de date reală
+        const [resTenants, resDocs, resMaint, resInv] = await Promise.all([
+          fetch(`${baseUrl}/chiriasi`, { headers }).catch(() => ({ ok: false })),
+          fetch(`${baseUrl}/documente`, { headers }).catch(() => ({ ok: false })),
+          fetch(`${baseUrl}/mentenanta`, { headers }).catch(() => ({ ok: false })),
+          fetch(`${baseUrl}/facturi`, { headers }).catch(() => ({ ok: false }))
+        ]);
+
+        const t = resTenants.ok ? await resTenants.json() : [];
+        const d = resDocs.ok ? await resDocs.json() : [];
+        const c = resMaint.ok ? await resMaint.json() : [];
+        const f = resInv.ok ? await resInv.json() : [];
+
+        setTenants(Array.isArray(t) ? t : []);
+        setDocumente(Array.isArray(d) ? d : []);
+        setCereri(Array.isArray(c) ? c : []);
+        setFacturi(Array.isArray(f) ? f : []);
+      } catch (error) {
+        console.error('Eroare la încărcarea dashboard-ului:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
-  const cereriUrgente = cereri.filter(c => c.prioritate === 'High' && c.status !== 'Rezolvată');
-  const facturiNeplatite = facturi.filter(f => f.status === 'Neplătită');
+  // Actualizat ca să recunoască noile statusuri în engleză ("Unpaid" și "Resolved") 
+  // dar le păstrăm și pe cele vechi pentru orice eventualitate.
+  const cereriUrgente = cereri.filter(c => c.prioritate === 'High' && c.status !== 'Rezolvată' && c.status !== 'Resolved');
+  const facturiNeplatite = facturi.filter(f => f.status === 'Neplătită' || f.status === 'Unpaid');
 
   const quickActions = [
     { label: 'Add Tenant', icon: '👤', link: '/adauga-chirias', desc: 'Register a new tenant' },
@@ -105,8 +130,8 @@ export default function ManagerDashboard() {
                   key={action.label}
                   onClick={() => navigate(action.link)}
                   style={{ padding: '20px', border: '1px solid rgba(29,29,27,0.12)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.12)'; }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; e.currentTarget.style.color = '#fff' }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.12)'; e.currentTarget.style.color = '#1d1d1b' }}
                 >
                   <div style={{ fontSize: '22px', marginBottom: '10px' }}>{action.icon}</div>
                   <div style={{ fontSize: '14px', color: 'inherit', fontWeight: 600, marginBottom: '4px' }}>{action.label}</div>

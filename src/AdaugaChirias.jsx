@@ -17,18 +17,46 @@ function AdaugaChirias() {
 
   const handleSave = async () => {
     if (!nume || !ap) {
-      setEroare('Te rugăm să completezi numele și numărul apartamentului!');
+      setEroare('Please fill in the name and apartment number!');
       return;
     }
+    
     setLoading(true);
     setEroare('');
+    
     try {
-      const { addTenant } = await import('./api/mockApi');
-      await addTenant({ nume, apartament_id: ap, email, telefon, data_inceput: dataInceput, data_sfarsit: dataSfarsit, chirie });
+      // Conectarea directă la serverul de pe Render (Baza de date reală)
+      const token = localStorage.getItem('token'); // Presupunem că managerul e logat și are token
+      
+      const payload = {
+        nume,
+        apartament_numar: ap,
+        email,
+        telefon,
+        data_inceput: dataInceput,
+        data_sfarsit: dataSfarsit,
+        chirie: chirie ? parseFloat(chirie) : 0
+      };
+
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save tenant');
+      }
+
       setSucces(true);
       setTimeout(() => navigate('/manager/tenants'), 1500);
+      
     } catch (err) {
-      setEroare('Nu mă pot conecta la server: ' + err.message);
+      setEroare('Cannot connect to server: ' + err.message);
     } finally {
       setLoading(false);
     }

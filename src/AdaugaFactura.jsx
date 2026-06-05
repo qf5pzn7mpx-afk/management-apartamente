@@ -5,7 +5,7 @@ import Navbar from './Navbar';
 function AdaugaFactura() {
   const [chiriasi, setChiriasi] = useState([]);
   const [chiriasId, setChiriasId] = useState('');
-  const [suma, setSuma] = useState('');
+  const [amount, setAmount] = useState('');
   const [tip, setTip] = useState(null);
   const [dataEmiterii, setDataEmiterii] = useState('');
   const [dataScadentei, setDataScadentei] = useState('');
@@ -17,35 +17,61 @@ function AdaugaFactura() {
   useEffect(() => {
     import('./api/mockApi').then(({ getTenants }) =>
       getTenants().then(data => setChiriasi(Array.isArray(data) ? data : []))
-    ).catch(() => setEroare('Nu pot încărca lista de chiriași.'));
+    ).catch(() => setEroare('Cannot load tenants list.'));
   }, []);
 
   const handleSave = async () => {
-    if (!chiriasId || !suma || !dataEmiterii || !dataScadentei || !tip) {
-      setEroare('Te rugăm să completezi toate câmpurile obligatorii!');
+    // Detector inteligent de câmpuri goale
+    const missingFields = [];
+    if (!chiriasId) missingFields.push('Tenant');
+    if (!amount) missingFields.push('Amount');
+    if (!tip) missingFields.push('Invoice Type');
+    if (!dataEmiterii) missingFields.push('Issue Date');
+    if (!dataScadentei) missingFields.push('Due Date');
+
+    // Dacă lipsește ceva, afișăm exact ce anume lipsește
+    if (missingFields.length > 0) {
+      setEroare(`Please fill in all required fields! Missing: ${missingFields.join(', ')}`);
       return;
     }
+
     setLoading(true);
     setEroare('');
     try {
-      const payload = { chirias_id: parseInt(chiriasId), suma: parseFloat(suma), tip, data_emiterii: dataEmiterii, data_scadentei: dataScadentei, status: 'Neplătită' };
-      const { addInvoice } = await import('./api/mockApi');
-      await addInvoice(payload);
+      const payload = { 
+        chirias_id: parseInt(chiriasId), 
+        suma: parseFloat(amount), 
+        tip: tip, 
+        data_emiterii: dataEmiterii, 
+        data_scadentei: dataScadentei, 
+        status: 'Unpaid' 
+      };
+
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/facturi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error saving invoice');
+      }
+
       setSucces(true);
       setTimeout(() => navigate('/facturi'), 1500);
     } catch (err) {
-      setEroare('Nu mă pot conecta la server: ' + err.message);
+      setEroare('Cannot connect to server: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const tipuri = [
-    { value: 'Chirie', label: 'Rent', icon: '🏠', desc: 'Monthly rent payment' },
-    { value: 'Întreținere', label: 'Maintenance', icon: '🔧', desc: 'Building maintenance fee' },
-    { value: 'Curent', label: 'Electricity', icon: '⚡', desc: 'Electric bill' },
-    { value: 'Gaz', label: 'Gas', icon: '🔥', desc: 'Gas bill' },
-    { value: 'Altele', label: 'Other', icon: '📋', desc: 'Other expenses' },
+    { value: 'Rent', label: 'Rent', icon: '🏠', desc: 'Monthly rent payment' },
+    { value: 'Maintenance', label: 'Maintenance', icon: '🔧', desc: 'Building maintenance fee' },
+    { value: 'Electricity', label: 'Electricity', icon: '⚡', desc: 'Electric bill' },
+    { value: 'Gas', label: 'Gas', icon: '🔥', desc: 'Gas bill' },
+    { value: 'Other', label: 'Other', icon: '📋', desc: 'Other expenses' },
   ];
 
   const chirias = chiriasi.find(c => String(c.id) === String(chiriasId));
@@ -81,7 +107,7 @@ function AdaugaFactura() {
         <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
 
           <div style={{ marginBottom: '12px' }}>
-            <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>Select Tenant</span>
+            <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>Select Tenant *</span>
           </div>
           <div style={{ borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '30px', marginBottom: '40px' }}>
             <select
@@ -123,6 +149,7 @@ function AdaugaFactura() {
               {tipuri.map(t => (
                 <button
                   key={t.value}
+                  type="button"
                   onClick={() => setTip(t.value)}
                   style={{ padding: '16px 10px', border: `1px solid ${tip === t.value ? '#1d1d1b' : 'rgba(29,29,27,0.15)'}`, background: tip === t.value ? '#1d1d1b' : '#fff', cursor: 'pointer', textAlign: 'center', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s' }}
                 >
@@ -142,8 +169,8 @@ function AdaugaFactura() {
               <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Amount (RON) *</label>
               <input
                 type="number"
-                value={suma}
-                onChange={e => setSuma(e.target.value)}
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
                 placeholder="ex: 1500"
                 style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
               />
@@ -168,7 +195,7 @@ function AdaugaFactura() {
             </div>
           </div>
 
-          {chiriasId && suma && tip && dataEmiterii && dataScadentei && (
+          {chiriasId && amount && tip && dataEmiterii && dataScadentei && (
             <div style={{ background: '#fcfdf5', border: '1px solid rgba(29,29,27,0.08)', padding: '20px 24px', marginBottom: '40px' }}>
               <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', textTransform: 'uppercase', marginBottom: '14px' }}>Invoice Preview</div>
               <div style={{ display: 'flex', gap: '40px' }}>
@@ -182,7 +209,7 @@ function AdaugaFactura() {
                 </div>
                 <div>
                   <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>AMOUNT</div>
-                  <div style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{suma} RON</div>
+                  <div style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{amount} RON</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>DUE DATE</div>
