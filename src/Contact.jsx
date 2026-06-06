@@ -12,11 +12,12 @@ function Contact() {
 
   const handleTrimite = () => {
     if (!nume || !email || !mesaj) {
-      setEroare('Numele, emailul și mesajul sunt obligatorii!');
+      setEroare('Name, email, and message are required!');
       return;
     }
     setLoading(true);
     setEroare('');
+    
     setTimeout(() => {
       setSucces(true);
       setNume('');
@@ -24,7 +25,7 @@ function Contact() {
       setSubiect('');
       setMesaj('');
       setLoading(false);
-    }, 700);
+    }, 1000);
   };
 
   return (
@@ -40,7 +41,7 @@ function Contact() {
             Get In<br />Touch
           </h1>
           <p style={{ fontSize: '16px', color: 'rgba(249,250,250,0.6)', lineHeight: 1.8, maxWidth: '340px', margin: '0 0 60px 0' }}>
-            Suntem aici să te ajutăm. Completează formularul și te contactăm în cel mai scurt timp.
+            We are here to help. Fill out the form and we will get back to you as soon as possible.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
@@ -87,7 +88,7 @@ function Contact() {
                         type="text"
                         value={nume}
                         onChange={e => setNume(e.target.value)}
-                        placeholder="Ion Popescu"
+                        placeholder="John Smith"
                         style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
                       />
                     </div>
@@ -97,7 +98,7 @@ function Contact() {
                         type="email"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        placeholder="email@exemplu.com"
+                        placeholder="email@example.com"
                         style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
                       />
                     </div>
@@ -109,7 +110,7 @@ function Contact() {
                       type="text"
                       value={subiect}
                       onChange={e => setSubiect(e.target.value)}
-                      placeholder="Subiectul mesajului"
+                      placeholder="Message subject"
                       style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
                     />
                   </div>
@@ -120,7 +121,7 @@ function Contact() {
                       value={mesaj}
                       onChange={e => setMesaj(e.target.value)}
                       rows={5}
-                      placeholder="Scrie mesajul tău aici..."
+                      placeholder="Write your message here..."
                       style={{ padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', resize: 'none', lineHeight: 1.7 }}
                     />
                   </div>
@@ -146,7 +147,7 @@ function Contact() {
                 Message Sent!
               </h2>
               <p style={{ fontSize: '16px', color: '#666', lineHeight: 1.7, marginBottom: '40px' }}>
-                Mulțumim pentru mesaj. Te vom contacta în cel mai scurt timp.
+                Thank you for reaching out. We will get back to you shortly.
               </p>
               <button
                 onClick={() => setSucces(false)}

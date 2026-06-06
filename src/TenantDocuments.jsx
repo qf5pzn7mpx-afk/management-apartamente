@@ -1,41 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
-const documents = [
-  {
-    id: 1,
-    name: 'Rental Agreement 2024',
-    type: 'Contract',
-    date: '01 Jan 2024',
-    status: 'Signed',
-    size: '2.4 MB',
-  },
-  {
-    id: 2,
-    name: 'Identity Document',
-    type: 'ID',
-    date: '15 Mar 2024',
-    status: 'Verified',
-    size: '1.1 MB',
-  },
-  {
-    id: 3,
-    name: 'Utility Bill – March',
-    type: 'Invoice',
-    date: '31 Mar 2024',
-    status: 'Pending',
-    size: '0.8 MB',
-  },
-  {
-    id: 4,
-    name: 'Move-In Checklist',
-    type: 'Other',
-    date: '02 Jan 2024',
-    status: 'Signed',
-    size: '0.5 MB',
-  },
-];
 
 const typeIcon = {
   Contract: (
@@ -78,22 +43,76 @@ const statusStyle = {
 };
 
 export default function TenantDocuments() {
+  const [documents, setDocuments] = useState([]);
   const [filter, setFilter] = useState('All');
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
+  const [loadingDocs, setLoadingDocs] = useState(true);
+
+  
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/documente', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+         
+          const formattedDocs = data.map(doc => ({
+            id: doc.id,
+            name: doc.titlu || 'Unnamed Document',
+            type: doc.tip || 'Other',
+            date: doc.data_incarcare || new Date().toISOString().split('T')[0],
+            status: 'Pending', 
+            size: 'N/A'
+          }));
+          setDocuments(formattedDocs);
+        }
+      } catch (error) {
+        console.error('Error fetching documents:', error);
+      } finally {
+        setLoadingDocs(false);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
 
   const types = ['All', 'Contract', 'ID', 'Invoice', 'Other'];
   const filtered = filter === 'All' ? documents : documents.filter(d => d.type === filter);
 
+  
   const handleUpload = () => {
     setUploading(true);
-    setTimeout(() => { setUploading(false); setUploaded(true); setTimeout(() => setUploaded(false), 3000); }, 1800);
+    setTimeout(() => { 
+      setUploading(false); 
+      setUploaded(true); 
+      
+      
+      const newDoc = {
+        id: Date.now(),
+        name: 'New Uploaded File',
+        type: 'Other',
+        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        status: 'Pending',
+        size: '1.2 MB'
+      };
+      setDocuments(prev => [newDoc, ...prev]);
+
+      setTimeout(() => setUploaded(false), 3000); 
+    }, 1800);
   };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafa', fontFamily: 'Helvetica, sans-serif', color: '#1d1d1b' }}>
 
-      {/* Header */}
+      {}
       <header style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -206,58 +225,62 @@ export default function TenantDocuments() {
             ))}
           </div>
 
-          {filtered.map((doc, i) => (
-            <motion.div
-              key={doc.id}
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 + i * 0.07, duration: 0.4 }}
-              style={{
-                display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 120px',
-                padding: '22px 32px', alignItems: 'center',
-                borderBottom: i < filtered.length - 1 ? '1px solid rgba(29,29,27,0.06)' : 'none',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(29,29,27,0.02)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ color: 'rgba(29,29,27,0.5)' }}>{typeIcon[doc.type]}</div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 400, color: '#1d1d1b' }}>{doc.name}</div>
-                  <div style={{ fontSize: '12px', color: 'rgba(29,29,27,0.4)', marginTop: '2px' }}>{doc.size}</div>
-                </div>
-              </div>
-              <span style={{ fontSize: '13px', color: 'rgba(29,29,27,0.6)' }}>{doc.type}</span>
-              <span style={{ fontSize: '13px', color: 'rgba(29,29,27,0.6)' }}>{doc.date}</span>
-              <span style={{
-                display: 'inline-block',
-                background: statusStyle[doc.status]?.bg,
-                color: statusStyle[doc.status]?.color,
-                padding: '4px 12px', fontSize: '12px', letterSpacing: '0.08em',
-              }}>{doc.status}</span>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                <button style={{
-                  background: 'none', border: '1px solid rgba(29,29,27,0.2)',
-                  padding: '6px 14px', fontSize: '12px', cursor: 'pointer',
-                  color: '#1d1d1b', fontFamily: 'Helvetica, sans-serif',
+          {loadingDocs ? (
+             <div style={{ padding: '60px 32px', textAlign: 'center', color: 'rgba(29,29,27,0.4)', fontSize: '15px' }}>
+             Loading documents...
+           </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ padding: '60px 32px', textAlign: 'center', color: 'rgba(29,29,27,0.4)', fontSize: '15px' }}>
+              No documents found.
+            </div>
+          ) : (
+            filtered.map((doc, i) => (
+              <motion.div
+                key={doc.id}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + i * 0.07, duration: 0.4 }}
+                style={{
+                  display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 120px',
+                  padding: '22px 32px', alignItems: 'center',
+                  borderBottom: i < filtered.length - 1 ? '1px solid rgba(29,29,27,0.06)' : 'none',
                   transition: 'background 0.2s',
                 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(29,29,27,0.05)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                >Open</button>
-              </div>
-            </motion.div>
-          ))}
-
-          {filtered.length === 0 && (
-            <div style={{ padding: '60px 32px', textAlign: 'center', color: 'rgba(29,29,27,0.4)', fontSize: '15px' }}>
-              No documents found for this category.
-            </div>
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(29,29,27,0.02)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ color: 'rgba(29,29,27,0.5)' }}>{typeIcon[doc.type] || typeIcon.Other}</div>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: 400, color: '#1d1d1b' }}>{doc.name}</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(29,29,27,0.4)', marginTop: '2px' }}>{doc.size}</div>
+                  </div>
+                </div>
+                <span style={{ fontSize: '13px', color: 'rgba(29,29,27,0.6)' }}>{doc.type}</span>
+                <span style={{ fontSize: '13px', color: 'rgba(29,29,27,0.6)' }}>{doc.date}</span>
+                <span style={{
+                  display: 'inline-block',
+                  background: statusStyle[doc.status]?.bg || '#fdf5e8',
+                  color: statusStyle[doc.status]?.color || '#b07d1a',
+                  padding: '4px 12px', fontSize: '12px', letterSpacing: '0.08em',
+                }}>{doc.status}</span>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button style={{
+                    background: 'none', border: '1px solid rgba(29,29,27,0.2)',
+                    padding: '6px 14px', fontSize: '12px', cursor: 'pointer',
+                    color: '#1d1d1b', fontFamily: 'Helvetica, sans-serif',
+                    transition: 'background 0.2s',
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(29,29,27,0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  >Open</button>
+                </div>
+              </motion.div>
+            ))
           )}
         </div>
 
-        {/* Bottom info strip */}
+        {}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -280,7 +303,7 @@ export default function TenantDocuments() {
           ))}
         </motion.div>
 
-        {/* Back link */}
+        {}
         <div style={{ marginTop: '60px', textAlign: 'center' }}>
           <Link to="/" style={{
             fontFamily: 'Helvetica, sans-serif', fontSize: '14px', color: '#1d1d1b',

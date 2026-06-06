@@ -10,7 +10,7 @@ function Dashboard() {
   const [chiriasi, setChiriasi] = useState([]);
   const [eroare, setEroare] = useState(null);
 
-  // Încarcă chiriașii din server
+  
   useEffect(() => {
     mockApi.getTenants().then((data) => setChiriasi(data)).catch(() => setChiriasi([]));
   }, []);

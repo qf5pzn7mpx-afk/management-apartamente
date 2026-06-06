@@ -21,7 +21,7 @@ function AdaugaFactura() {
   }, []);
 
   const handleSave = async () => {
-    // Detector inteligent de câmpuri goale
+    
     const missingFields = [];
     if (!chiriasId) missingFields.push('Tenant');
     if (!amount) missingFields.push('Amount');
@@ -29,7 +29,7 @@ function AdaugaFactura() {
     if (!dataEmiterii) missingFields.push('Issue Date');
     if (!dataScadentei) missingFields.push('Due Date');
 
-    // Dacă lipsește ceva, afișăm exact ce anume lipsește
+    
     if (missingFields.length > 0) {
       setEroare(`Please fill in all required fields! Missing: ${missingFields.join(', ')}`);
       return;

@@ -309,6 +309,15 @@ function TestimonialsSection() {
 
 function ContactSection() {
   const titleRef = useRef(null);
+  
+  
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [message, setMessage] = React.useState('');
+  const [status, setStatus] = React.useState({ type: '', text: '' });
+  const [loading, setLoading] = React.useState(false);
 
   useGSAP(() => {
     gsap.fromTo(titleRef.current,
@@ -323,6 +332,30 @@ function ContactSection() {
     );
   }, { scope: titleRef });
 
+  const handleSubmit = () => {
+    if (!firstName || !lastName || !email || !message) {
+      setStatus({ type: 'error', text: 'Please fill in all required fields (*).' });
+      return;
+    }
+
+    setLoading(true);
+    setStatus({ type: '', text: '' });
+
+    
+    setTimeout(() => {
+      setStatus({ type: 'success', text: 'Message sent successfully! We will contact you soon.' });
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+      setLoading(false);
+      
+     
+      setTimeout(() => setStatus({ type: '', text: '' }), 5000);
+    }, 1000);
+  };
+
   return (
     <section className="contact-section" id="contact">
       <div className="contact-left">
@@ -331,29 +364,51 @@ function ContactSection() {
       </div>
       <div className="contact-form-box">
         <h3 className="contact-form-title">Don't Wait, Reach Out Now</h3>
+        
+        {/* Afișarea mesajelor de eroare sau succes */}
+        {status.text && (
+          <div style={{ 
+            padding: '12px 16px', 
+            marginBottom: '20px', 
+            fontSize: '14px',
+            backgroundColor: status.type === 'error' ? '#fff0f0' : '#f0fff0',
+            border: `1px solid ${status.type === 'error' ? '#ffcccc' : '#ccffcc'}`,
+            color: status.type === 'error' ? '#cc0000' : '#007700'
+          }}>
+            {status.text}
+          </div>
+        )}
+
         <div className="contact-form-grid">
           <div className="contact-field">
             <label className="contact-label">First name *</label>
-            <input className="contact-input" type="text" />
+            <input className="contact-input" type="text" value={firstName} onChange={e => setFirstName(e.target.value)} />
           </div>
           <div className="contact-field">
             <label className="contact-label">Last name *</label>
-            <input className="contact-input" type="text" />
+            <input className="contact-input" type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
           </div>
           <div className="contact-field">
             <label className="contact-label">Email *</label>
-            <input className="contact-input" type="email" />
+            <input className="contact-input" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           </div>
           <div className="contact-field">
             <label className="contact-label">Phone</label>
-            <input className="contact-input" type="tel" />
+            <input className="contact-input" type="tel" value={phone} onChange={e => setPhone(e.target.value)} />
           </div>
           <div className="contact-field contact-field-full">
             <label className="contact-label">Message *</label>
-            <textarea className="contact-input contact-textarea" rows={4} />
+            <textarea className="contact-input contact-textarea" rows={4} value={message} onChange={e => setMessage(e.target.value)} />
           </div>
         </div>
-        <button className="contact-submit">Submit</button>
+        <button 
+          className="contact-submit" 
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+        >
+          {loading ? 'Sending...' : 'Submit'}
+        </button>
       </div>
     </section>
   );
