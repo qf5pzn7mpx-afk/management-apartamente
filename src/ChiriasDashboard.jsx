@@ -28,7 +28,7 @@ export default function ChiriasDashboard() {
     { label: 'My Invoices', desc: 'View and pay your bills', link: '/chirias/invoices', icon: '🧾' },
     { label: 'My Documents', desc: 'Contracts and agreements', link: '/chirias/documents', icon: '📄' },
     { label: 'Maintenance', desc: 'Report or track issues', link: '/chirias/maintenance', icon: '🔧' },
-    { label: 'Contact', desc: 'Get in touch with manager', link: '/contact', icon: '📞' },
+    { label: 'Message Manager', desc: 'Send a message', link: '/chirias/message', icon: '💬' },
   ];
 
   return (
@@ -144,7 +144,7 @@ export default function ChiriasDashboard() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               <div
-                style={{ padding: '16px', border: '1px solid rgba(29,29,27,0.1)', background: '#fcfdf5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{ padding: '16px', border: '1px solid rgba(29,29,27,0.1)', background: '#fcfdf5', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.15s' }}
                 onMouseOver={e => e.currentTarget.style.background = '#f5f0eb'}
                 onMouseOut={e => e.currentTarget.style.background = '#fcfdf5'}
               >
@@ -157,7 +157,7 @@ export default function ChiriasDashboard() {
             </div>
 
             <button
-              onClick={() => navigate('/raporteaza-problema')}
+              onClick={() => navigate('/chirias/maintenance')}
               style={{ width: '100%', padding: '14px', border: '1px dashed rgba(29,29,27,0.2)', background: 'transparent', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', fontSize: '14px', color: '#1d1d1b', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.color = '#f9fafa'; e.currentTarget.style.borderColor = '#1d1d1b'; }}
               onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1b'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.2)'; }}
@@ -170,15 +170,15 @@ export default function ChiriasDashboard() {
         <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '30px 40px', background: '#1d1d1b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3 style={{ fontFamily: 'Forum, serif', fontSize: '24px', fontWeight: 400, color: '#f9fafa', margin: '0 0 8px 0' }}>Need Help?</h3>
-            <p style={{ fontSize: '14px', color: 'rgba(249,250,250,0.6)', margin: 0 }}>Contact your property manager directly.</p>
+            <p style={{ fontSize: '14px', color: 'rgba(249,250,250,0.6)', margin: 0 }}>Send a message directly to your property manager.</p>
           </div>
           <button
-            onClick={() => navigate('/contact')}
+            onClick={() => navigate('/chirias/message')}
             style={{ background: '#f9fafa', color: '#1d1d1b', border: 'none', padding: '12px 28px', fontSize: '14px', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', transition: 'opacity 0.2s' }}
             onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
             onMouseOut={e => e.currentTarget.style.opacity = '1'}
           >
-            Contact Manager →
+            Message Manager →
           </button>
         </div>
 
