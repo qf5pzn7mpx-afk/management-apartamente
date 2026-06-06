@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import Navbar from '../Navbar';
 import { AuthContext } from '../AuthContext';
-import mockApi from '../api/mockApi';
 
 export default function ChiriasDocuments() {
   const { user } = useContext(AuthContext) || {};
@@ -11,10 +10,25 @@ export default function ChiriasDocuments() {
 
   useEffect(() => {
     if (!user) return;
-    import('../api/mockApi').then(m => m.getDocuments({ tenantId: user.id }))
-      .then(data => setDocs(Array.isArray(data) ? data : []))
-      .catch(() => setDocs([]))
-      .finally(() => setLoading(false));
+    const fetchMyDocs = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/documente', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Filtrăm ca să vadă doar documentele lui
+          const myDocs = (Array.isArray(data) ? data : []).filter(d => d.chirias_id?.toString() === user.id?.toString());
+          setDocs(myDocs);
+        }
+      } catch (error) {
+        console.error('Error fetching docs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMyDocs();
   }, [user]);
 
   const getTipLabel = (tip) => {
@@ -119,13 +133,13 @@ export default function ChiriasDocuments() {
                     </div>
                   </div>
                   <span style={{ fontSize: '14px', color: '#555' }}>{getTipLabel(doc.tip)}</span>
-                  <span style={{ fontSize: '14px', color: '#555' }}>{doc.data || doc.createdAt || '—'}</span>
+                  <span style={{ fontSize: '14px', color: '#555' }}>{doc.data_upload || doc.data || '—'}</span>
                   <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
                     {status}
                   </span>
                   
                   <a
-                    href={doc.cale || doc.url || '#'}
+                    href={`https://management-apartamente-api.onrender.com${doc.cale}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ padding: '6px 14px', border: '1px solid rgba(29,29,27,0.2)', fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', background: '#fff', transition: 'all 0.2s', display: 'inline-block', textAlign: 'center' }}

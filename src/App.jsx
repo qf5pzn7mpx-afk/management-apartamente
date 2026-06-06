@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 import TenantMessages from './manager/TenantMessages';
 import SendMessage from './chirias/SendMessage';
 
-import mockApi from './api/mockApi';
-
 import Dashboard from './Dashboard';
 import Home from './Home';
 import Login from './Login';
@@ -38,19 +36,31 @@ function App() {
   const [chiriasi, setChiriasi] = useState([]);
 
   useEffect(() => {
-    mockApi.initMock();
+   
+    const fetchTenants = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const res = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setChiriasi(Array.isArray(data) ? data : []);
+        } else {
+          setChiriasi([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tenants:", err);
+        setChiriasi([]);
+      }
+    };
+    fetchTenants();
 
-    mockApi
-      .getTenants()
-      .then((data) => setChiriasi(data))
-      .catch(() => setChiriasi([]));
-
+   
     fetch('https://management-apartamente-api.onrender.com/api/test')
       .then((res) => res.json())
-      .then((data) => setMesajServer(data.message)) // Am schimbat din .mesaj în .message
-      .catch(() =>
-        setMesajServer('Error: Backend server is offline.') // Tradus în engleză
-      );
+      .then((data) => setMesajServer(data.message)) 
+      .catch(() => setMesajServer('Error: Backend server is offline.'));
   }, []);
 
   const adaugaChirias = (nou) => {
@@ -71,7 +81,6 @@ function App() {
         <strong>Server Status: </strong>
         <span
           style={{
-            // Am adăugat semnul ? și căutăm cuvântul Error în loc de Eroare
             color: mesajServer?.includes('Error') ? 'red' : 'blue',
           }}
         >
@@ -84,14 +93,13 @@ function App() {
           <Routes>
 
             <Route path="/" element={<Home />} />
-
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/tenant-documents" element={<TenantDocuments />} />
+            
             <Route path="/manager/messages" element={<ProtectedRoute allowedRoles={['manager']}><TenantMessages /></ProtectedRoute>} />
-
-<Route path="/chirias/message" element={<ProtectedRoute allowedRoles={['chirias']}><SendMessage /></ProtectedRoute>} />
+            <Route path="/chirias/message" element={<ProtectedRoute allowedRoles={['chirias']}><SendMessage /></ProtectedRoute>} />
 
             <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
             <Route path="/chirias" element={<Navigate to="/chirias/dashboard" replace />} />

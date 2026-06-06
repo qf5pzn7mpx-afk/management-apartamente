@@ -10,37 +10,67 @@ function GestionareDocumente() {
   const [filtruActiv, setFiltruActiv] = useState('All');
 
   useEffect(() => {
-    Promise.all([
-      import('./api/mockApi').then(m => m.getDocuments()),
-      import('./api/mockApi').then(m => m.getTenants())
-    ])
-      .then(([dataDoc, dataChir]) => {
-        if (Array.isArray(dataDoc)) setDocumente(dataDoc);
-        if (Array.isArray(dataChir)) setChiriasi(dataChir);
-      })
-      .catch(() => setEroare('Nu am putut încărca documentele.'))
-      .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        
+        // Luăm documentele
+        const docsRes = await fetch('https://management-apartamente-api.onrender.com/api/documente', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        // Luăm chiriașii (pentru a le potrivi numele cu ID-ul)
+        const tenantsRes = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (docsRes.ok && tenantsRes.ok) {
+          const docsData = await docsRes.json();
+          const tenantsData = await tenantsRes.json();
+          
+          setDocumente(Array.isArray(docsData) ? docsData : []);
+          setChiriasi(Array.isArray(tenantsData) ? tenantsData : []);
+        } else {
+           setEroare('Nu am putut încărca datele de pe server.');
+        }
+      } catch (err) {
+        setEroare('Eroare de conexiune la server.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const stergeDocument = async (id) => {
     if (!window.confirm("Sigur vrei să ștergi acest document?")) return;
     try {
-      const { deleteDocument } = await import('./api/mockApi');
-      await deleteDocument(id);
-      setDocumente(documente.filter((doc) => doc.id !== id));
+      const token = localStorage.getItem('token') || '';
+      const response = await fetch(`https://management-apartamente-api.onrender.com/api/documente/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setDocumente(documente.filter((doc) => doc.id !== id));
+      } else {
+        alert("Eroare la ștergerea documentului de pe server.");
+      }
     } catch (err) {
       alert("Eroare: " + err.message);
     }
   };
 
   const getChiriasNume = (chiriasId) => {
-    const chirias = chiriasi.find(ch => ch.id === chiriasId);
+    const chirias = chiriasi.find(ch => ch.id?.toString() === chiriasId?.toString());
     return chirias ? chirias.nume : 'Necunoscut';
   };
 
   const getTipLabel = (tip) => {
     const labels = { contract: 'Contract', identitate: 'ID', factura: 'Invoice', alte: 'Other' };
-    return labels[tip] || tip;
+    return labels[tip] || tip || 'Other';
   };
 
   const getStatusLabel = (doc) => {
@@ -176,17 +206,19 @@ function GestionareDocumente() {
                     </svg>
                     <div>
                       <div style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{doc.nume_fisier || doc.title}</div>
-                      <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>{doc.marime || ''}</div>
+                      <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
+                         For: {getChiriasNume(doc.chirias_id)}
+                      </div>
                     </div>
                   </div>
                   <span style={{ fontSize: '14px', color: '#555' }}>{getTipLabel(doc.tip)}</span>
-                  <span style={{ fontSize: '14px', color: '#555' }}>{doc.data || doc.createdAt || '-'}</span>
+                  <span style={{ fontSize: '14px', color: '#555' }}>{doc.data_upload || doc.data || '-'}</span>
                   <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
                     {status}
                   </span>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <a
-                      href={doc.cale || doc.url || '#'}
+                      href={`https://management-apartamente-api.onrender.com${doc.cale}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ padding: '6px 14px', border: '1px solid rgba(29,29,27,0.2)', fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', background: '#fff' }}

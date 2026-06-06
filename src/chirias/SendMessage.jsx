@@ -29,20 +29,22 @@ export default function SendMessage() {
     setEroare('');
 
     try {
-      // TODO pentru backend developer:
-      // await fetch('/api/mesaje', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     tenantId: user?.id,
-      //     tenantName: user?.name || user?.email,
-      //     subject: subiect,
-      //     message: mesaj,
-      //     category: categorie,
-      //   })
-      // });
+      const token = localStorage.getItem('token') || '';
+      
+      await fetch('https://management-apartamente-api.onrender.com/api/contact', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          firstName: user?.name || 'Tenant',
+          lastName: `(ID: ${user?.id || '?'})`,
+          email: user?.email || 'tenant@email.com',
+          message: `[${categorie}] ${subiect} - ${mesaj}`
+        })
+      });
 
-      await new Promise(resolve => setTimeout(resolve, 800));
       setSucces(true);
     } catch {
       setEroare('Could not send message. Please try again.');

@@ -1,30 +1,55 @@
-
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import logo from './assets/logo.png';
 import Navbar from './Navbar';
-import mockApi from './api/mockApi';
 
 function Dashboard() {
   const [meniuDeschis, setMeniuDeschis] = useState(false);
   const [chiriasi, setChiriasi] = useState([]);
   const [eroare, setEroare] = useState(null);
 
-  
   useEffect(() => {
-    mockApi.getTenants().then((data) => setChiriasi(data)).catch(() => setChiriasi([]));
+    const fetchTenants = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const res = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setChiriasi(Array.isArray(data) ? data : []);
+        } else {
+          setChiriasi([]);
+        }
+      } catch (err) {
+        console.error("Eroare la încărcarea chiriașilor:", err);
+        setChiriasi([]);
+      }
+    };
+    
+    fetchTenants();
   }, []);
 
   const stergeChirias = async (id) => {
     const confirmare = window.confirm("Sigur vrei să ștergi acest chiriaș?");
     if (!confirmare) return;
 
-      try {
-        await mockApi.deleteTenant(id);
+    try {
+      const token = localStorage.getItem('token') || '';
+      const response = await fetch(`https://management-apartamente-api.onrender.com/api/chiriasi/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
         setChiriasi((s) => s.filter((c) => c.id !== id));
-      } catch (err) {
-        console.error(err);
+      } else {
+        setEroare("Eroare la ștergerea chiriașului de pe server.");
       }
+    } catch (err) {
+      console.error(err);
+      setEroare("A apărut o eroare la conexiunea cu serverul.");
+    }
   };
 
   const features = [
@@ -207,7 +232,6 @@ function Dashboard() {
                     Email: <span className="font-medium text-slate-900">{ch.email || '—'}</span>
                   </p>
 
-                  {/* ⇣ BUTONUL DE ȘTERGERE A FOST MUTAT AICI ⇣ */}
                   <button 
                     onClick={() => stergeChirias(ch.id)}
                     className="mt-6 w-full rounded-lg border border-red-500/30 bg-red-50 py-2 text-sm font-medium text-red-600 hover:bg-red-500 hover:text-white transition-colors duration-200"

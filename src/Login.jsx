@@ -38,7 +38,7 @@ function Login() {
         return;
       }
 
-      // Transformăm ambele roluri în litere mici pentru o comparație perfectă
+      
       const serverRole = String(data.rol || 'chirias').toLowerCase();
       const expectedRole = String(rolAsteptat).toLowerCase();
 

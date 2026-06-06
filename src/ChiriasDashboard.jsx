@@ -2,7 +2,6 @@ import Navbar from './Navbar';
 import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
-import mockApi from './api/mockApi';
 
 export default function ChiriasDashboard() {
   const { user } = useContext(AuthContext) || {};
@@ -12,10 +11,25 @@ export default function ChiriasDashboard() {
 
   useEffect(() => {
     if (!user) return;
-    mockApi.getInvoices({ tenantId: user.id })
-      .then(data => setInvoices(Array.isArray(data) ? data : []))
-      .catch(() => setInvoices([]))
-      .finally(() => setLoading(false));
+    const fetchMyInvoices = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/facturi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Păstrăm doar facturile acestui chiriaș
+          const myInvoices = (Array.isArray(data) ? data : []).filter(i => i.chirias_id?.toString() === user.id?.toString());
+          setInvoices(myInvoices);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard invoices:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMyInvoices();
   }, [user]);
 
   const facturiRestante = invoices.filter(i => i.status !== 'Plătită');

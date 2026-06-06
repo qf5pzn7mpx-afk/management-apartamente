@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../Navbar';
-import mockApi from '../api/mockApi';
 
 export default function TenantDetails() {
   const { id } = useParams();
@@ -12,20 +11,77 @@ export default function TenantDetails() {
   const [newInvoice, setNewInvoice] = useState({ amount: '', description: '' });
 
   useEffect(() => {
-    Promise.all([
-      mockApi.getTenant ? mockApi.getTenant(id) : Promise.resolve(null),
-      mockApi.getInvoices ? mockApi.getInvoices({ tenantId: id }) : Promise.resolve([]),
-    ]).then(([t, inv]) => {
-      setTenant(t);
-      setInvoices(Array.isArray(inv) ? inv : []);
-    }).catch(() => {}).finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        
+        // Căutăm toți chiriașii și îl găsim pe cel corect după ID
+        const tenantsRes = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        // Luăm facturile
+        const invoicesRes = await fetch('https://management-apartamente-api.onrender.com/api/facturi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (tenantsRes.ok && invoicesRes.ok) {
+          const tenantsData = await tenantsRes.json();
+          const invoicesData = await invoicesRes.json();
+          
+          const foundTenant = tenantsData.find(t => t.id.toString() === id.toString());
+          setTenant(foundTenant || null);
+          
+          // Filtrăm doar facturile acestui chiriaș
+          const tenantInvoices = invoicesData.filter(i => i.chirias_id?.toString() === id.toString());
+          setInvoices(tenantInvoices);
+        }
+      } catch (error) {
+        console.error('Error fetching details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [id]);
 
-  const addInvoice = () => {
+  const addInvoice = async () => {
     if (!newInvoice.amount || !newInvoice.description) return;
-    const payload = { tenantId: Number(id), amount: newInvoice.amount, description: newInvoice.description };
-    mockApi.addInvoice ? mockApi.addInvoice(payload).then(created => setInvoices(s => [created, ...s])) : setInvoices(s => [{ id: Date.now(), ...payload }, ...s]);
-    setNewInvoice({ amount: '', description: '' });
+    
+    try {
+      const token = localStorage.getItem('token');
+      const payload = { 
+        chirias_id: Number(id), 
+        suma: Number(newInvoice.amount), 
+        tip: newInvoice.description,
+        data_emiterii: new Date().toISOString().split('T')[0],
+        data_scadentei: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
+        status: 'Neplătită'
+      };
+
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/facturi', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const createdInvoice = { id: result.id, ...payload };
+        // Mapăm pentru a se potrivi vizual cu ce afișezi jos
+        createdInvoice.amount = payload.suma;
+        createdInvoice.description = payload.tip;
+        
+        setInvoices(s => [createdInvoice, ...s]);
+        setNewInvoice({ amount: '', description: '' });
+      }
+    } catch (error) {
+      console.error('Error adding invoice:', error);
+    }
   };
 
   if (loading) return (
@@ -120,8 +176,8 @@ export default function TenantDetails() {
                 onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
                 onMouseOut={e => e.currentTarget.style.background = 'transparent'}
               >
-                <span style={{ fontSize: '15px', color: '#1d1d1b' }}>{inv.description || '—'}</span>
-                <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 600 }}>{inv.amount} RON</span>
+                <span style={{ fontSize: '15px', color: '#1d1d1b' }}>{inv.description || inv.tip || '—'}</span>
+                <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 600 }}>{inv.amount || inv.suma} RON</span>
                 <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: inv.status === 'Plătită' ? '#e8f4e8' : '#fff0f0', color: inv.status === 'Plătită' ? '#2d7a2d' : '#cc0000', width: 'fit-content' }}>
                   {inv.status || 'Unpaid'}
                 </span>
@@ -138,14 +194,6 @@ export default function TenantDetails() {
             onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#1d1d1b'; }}
           >
             ← Back to Tenants
-          </button>
-          <button
-            onClick={() => navigate('/adauga-factura')}
-            style={{ background: '#1d1d1b', color: '#f9fafa', border: 'none', padding: '12px 28px', fontSize: '13px', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', letterSpacing: '0.05em', transition: 'opacity 0.2s' }}
-            onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
-            onMouseOut={e => e.currentTarget.style.opacity = '1'}
-          >
-            + Add Invoice
           </button>
         </div>
       </div>

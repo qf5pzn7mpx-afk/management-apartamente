@@ -8,23 +8,63 @@ function GestionareMentenanta() {
   const [eroare, setEroare] = useState('');
   const [filtruActiv, setFiltruActiv] = useState('All');
 
-  const incarcaCereri = () => {
+  const incarcaCereri = async () => {
     setLoading(true);
-    import('./api/mockApi').then(m => m.getMaintenance())
-      .then((data) => { if (Array.isArray(data)) setCereri(data); })
-      .catch(() => setEroare('Nu am putut încărca cererile.'))
-      .finally(() => setLoading(false));
+    try {
+      const token = localStorage.getItem('token') || '';
+      
+      
+      const [mentRes, chiriasiRes] = await Promise.all([
+        fetch('https://management-apartamente-api.onrender.com/api/mentenanta', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('https://management-apartamente-api.onrender.com/api/chiriasi', { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
+      if (mentRes.ok && chiriasiRes.ok) {
+        const mentData = await mentRes.json();
+        const chiriasiData = await chiriasiRes.json();
+        
+        // Asociem chirias_id cu numele real al chiriașului
+        const cereriMapate = mentData.map(c => {
+          const chirias = chiriasiData.find(ch => ch.id?.toString() === c.chirias_id?.toString());
+          return { ...c, chirias_nume: chirias ? (chirias.nume || chirias.name) : 'Necunoscut' };
+        });
+        
+        setCereri(cereriMapate);
+      } else {
+        setEroare('Nu am putut încărca cererile de pe server.');
+      }
+    } catch (err) {
+      console.error(err);
+      setEroare('Eroare de conexiune la server.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { incarcaCereri(); }, []);
+  useEffect(() => { 
+    incarcaCereri(); 
+  }, []);
 
   const schimbaStatus = async (id, statusNou) => {
     try {
-      const { updateMaintenanceStatus } = await import('./api/mockApi');
-      await updateMaintenanceStatus(id, statusNou);
-      incarcaCereri();
-    } catch {
-      alert("Nu am putut actualiza statusul.");
+      const token = localStorage.getItem('token') || '';
+      const response = await fetch(`https://management-apartamente-api.onrender.com/api/mentenanta/${id}/status`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ status: statusNou })
+      });
+
+      if (response.ok) {
+        incarcaCereri(); 
+      } else {
+        alert("Nu am putut actualiza statusul pe server.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Eroare de rețea. Nu am putut actualiza statusul.");
     }
   };
 
@@ -142,7 +182,7 @@ function GestionareMentenanta() {
                         {cerere.prioritate}
                       </span>
                     )}
-                    <span style={{ fontSize: '12px', color: '#999', marginLeft: 'auto' }}>{cerere.data_crearii || ''}</span>
+                    <span style={{ fontSize: '12px', color: '#999', marginLeft: 'auto' }}>{cerere.data_raportarii || cerere.data_crearii || ''}</span>
                   </div>
 
                   <h3 style={{ fontFamily: 'Forum, serif', fontSize: '22px', color: '#1d1d1b', margin: '0 0 8px 0' }}>{cerere.titlu}</h3>
@@ -157,7 +197,11 @@ function GestionareMentenanta() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '160px' }}>
                   {cerere.poza && (
-                    <img src={cerere.poza} alt="issue" style={{ width: '100%', height: '100px', objectFit: 'cover', marginBottom: '8px' }} />
+                    <img 
+                      src={cerere.poza.startsWith('http') ? cerere.poza : `https://management-apartamente-api.onrender.com${cerere.poza}`} 
+                      alt="issue" 
+                      style={{ width: '100%', height: '100px', objectFit: 'cover', border: '1px solid rgba(29,29,27,0.1)', marginBottom: '8px' }} 
+                    />
                   )}
                   <button
                     onClick={() => schimbaStatus(cerere.id, 'În lucru')}

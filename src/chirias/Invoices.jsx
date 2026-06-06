@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import Navbar from '../Navbar';
 import { AuthContext } from '../AuthContext';
-import mockApi from '../api/mockApi';
 
 export default function ChiriasInvoices() {
   const { user } = useContext(AuthContext) || {};
@@ -18,10 +17,25 @@ export default function ChiriasInvoices() {
 
   useEffect(() => {
     if (!user) return;
-    mockApi.getInvoices({ tenantId: user.id })
-      .then(data => setInvoices(Array.isArray(data) ? data : []))
-      .catch(() => setInvoices([]))
-      .finally(() => setLoading(false));
+    const fetchInvoices = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/facturi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Filtrăm ca să vadă doar facturile lui
+          const myInvoices = (Array.isArray(data) ? data : []).filter(i => i.chirias_id?.toString() === user.id?.toString());
+          setInvoices(myInvoices);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvoices();
   }, [user]);
 
   const getStatusBg = (status) => {
@@ -49,18 +63,32 @@ export default function ChiriasInvoices() {
     .filter(i => !platitIds.includes(i.id) && i.status !== 'Plătită')
     .reduce((sum, i) => sum + parseFloat(i.suma || i.amount || 0), 0);
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (!cardNumber || !cardName || !cardExpiry || !cardCvv) return;
     setPaying(true);
-    setTimeout(() => {
+    
+    try {
+      const token = localStorage.getItem('token') || '';
+      await fetch(`https://management-apartamente-api.onrender.com/api/facturi/${platModal.id}/status`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ status: 'Plătită' })
+      });
+      
       setPlatitIds(prev => [...prev, platModal.id]);
-      setPaying(false);
-      setPlatModal(null);
-      setCardNumber('');
-      setCardName('');
-      setCardExpiry('');
-      setCardCvv('');
-    }, 1500);
+    } catch (error) {
+      console.error("Error paying:", error);
+    }
+
+    setPaying(false);
+    setPlatModal(null);
+    setCardNumber('');
+    setCardName('');
+    setCardExpiry('');
+    setCardCvv('');
   };
 
   const formatCard = (val) => {
@@ -135,7 +163,7 @@ export default function ChiriasInvoices() {
                   onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <span style={{ fontSize: '14px', color: '#999' }}>#{inv.id}</span>
-                  <span style={{ fontSize: '14px', color: '#1d1d1b' }}>{inv.description || inv.tip || '—'}</span>
+                  <span style={{ fontSize: '14px', color: '#1d1d1b' }}>{inv.tip || inv.description || '—'}</span>
                   <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 600 }}>{inv.suma || inv.amount || '—'} RON</span>
                   <span style={{ fontSize: '14px', color: '#555' }}>{inv.data_emiterii || inv.data || '—'}</span>
                   <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
@@ -187,9 +215,6 @@ export default function ChiriasInvoices() {
                   <span>{platModal.tip || platModal.description || 'Invoice'}</span>
                   <strong>{platModal.suma || platModal.amount} RON</strong>
                 </div>
-                {platModal.data_scadentei && (
-                  <div style={{ fontSize: '12px', color: '#999', marginTop: '6px' }}>Due: {platModal.data_scadentei}</div>
-                )}
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

@@ -1,7 +1,6 @@
 import { useContext, useState } from 'react';
 import Navbar from '../Navbar';
 import { AuthContext } from '../AuthContext';
-import mockApi from '../api/mockApi';
 import { useNavigate } from 'react-router-dom';
 
 export default function ChiriasMaintenance() {
@@ -29,22 +28,37 @@ export default function ChiriasMaintenance() {
     }
     setLoading(true);
     setEroare('');
+
     try {
-      const payload = {
-        tenantId: user?.id || 'guest',
-        titlu,
-        descriere: detalii,
-        status: 'Nouă',
-        urgenta,
-        poza: poza ? poza.name : null,
-      };
-      await mockApi.addMaintenance(payload);
+      const token = localStorage.getItem('token') || '';
+      
+      const formData = new FormData();
+      formData.append('titlu', titlu);
+      formData.append('descriere', `[Urgency: ${urgenta}] ${detalii}`);
+      formData.append('chirias_id', user?.id || '');
+      formData.append('status', 'Nouă');
+      
+      if (poza) {
+        formData.append('poza', poza); // Numele trebuie să se potrivească cu upload.single('poza') din backend
+      }
+
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/mentenanta', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // Nu pune Content-Type aici, îl setează browserul automat pentru FormData
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Failed to save to database");
+
       setSucces(true);
       setTitlu('');
       setDetalii('');
       setPoza(null);
       setUrgenta('Low');
-    } catch {
+    } catch (err) {
       setEroare('Could not submit request. Please try again.');
     } finally {
       setLoading(false);

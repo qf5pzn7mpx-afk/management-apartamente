@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
-import mockApi from './api/mockApi';
 
 function GestionareFacturi() {
   const [facturi, setFacturi] = useState([]);
@@ -13,10 +12,44 @@ function GestionareFacturi() {
   const facturiPerPagina = 8;
 
   useEffect(() => {
-    mockApi.getInvoices()
-      .then((data) => { if (Array.isArray(data)) setFacturi(data); })
-      .catch(() => setEroare('Nu pot încărca facturile.'))
-      .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        
+        
+        const [facturiRes, chiriasiRes] = await Promise.all([
+          fetch('https://management-apartamente-api.onrender.com/api/facturi', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('https://management-apartamente-api.onrender.com/api/chiriasi', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        if (facturiRes.ok && chiriasiRes.ok) {
+          const facturiData = await facturiRes.json();
+          const chiriasiData = await chiriasiRes.json();
+          
+          const chiriasiArray = Array.isArray(chiriasiData) ? chiriasiData : [];
+          
+          
+          const facturiCuNume = (Array.isArray(facturiData) ? facturiData : []).map(f => {
+            const chirias = chiriasiArray.find(c => c.id?.toString() === f.chirias_id?.toString());
+            return {
+              ...f,
+              chirias_nume: chirias ? (chirias.nume || chirias.name) : 'Necunoscut'
+            };
+          });
+
+          setFacturi(facturiCuNume);
+        } else {
+          setEroare('Nu pot încărca facturile de pe server.');
+        }
+      } catch (err) {
+        setEroare('Eroare de conexiune la server.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const getStatusBg = (status) => {

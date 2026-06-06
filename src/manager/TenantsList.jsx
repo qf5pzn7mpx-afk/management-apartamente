@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../Navbar';
-import mockApi from '../api/mockApi';
 
 export default function TenantsList() {
   const [tenants, setTenants] = useState([]);
@@ -10,10 +9,34 @@ export default function TenantsList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    mockApi.getTenants()
-      .then(data => setTenants(Array.isArray(data) ? data : []))
-      .catch(() => setTenants([]))
-      .finally(() => setLoading(false));
+    
+    const fetchTenants = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          setTenants(Array.isArray(data) ? data : []);
+        } else {
+           console.error("Failed to load tenants");
+           setTenants([]);
+        }
+      } catch (error) {
+        console.error('Error fetching tenants:', error);
+        setTenants([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTenants();
   }, []);
 
   const filtrati = tenants.filter(t =>

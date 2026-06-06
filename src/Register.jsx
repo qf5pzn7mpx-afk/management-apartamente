@@ -28,7 +28,7 @@ function Register() {
     setLoading(true);
 
     try {
-      // Ne asigurăm că trimitem mereu rolul scris cu litere mici
+     
       const validRole = rol ? rol.toLowerCase() : 'chirias';
 
       const response = await fetch('https://management-apartamente-api.onrender.com/api/auth/register', {
