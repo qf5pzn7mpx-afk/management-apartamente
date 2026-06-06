@@ -25,6 +25,7 @@ const verifyToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; 
+    next(); 
   } catch (err) {
     res.status(401).json({ error: 'Invalid or expired token.' });
   }
@@ -51,7 +52,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Database Schema
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS utilizatori (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -126,7 +127,7 @@ db.exec(`
   );
 `);
 
-// --- ROUTES ---
+
 
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -334,7 +335,7 @@ app.post('/api/contact', (req, res) => {
   }
 });
 
-// --- NOILE RUTE PENTRU REVIEWS ---
+
 
 app.get('/api/reviews', (req, res) => {
   try {
