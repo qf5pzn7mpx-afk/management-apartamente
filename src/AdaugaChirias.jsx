@@ -21,13 +21,16 @@ function AdaugaChirias() {
       return;
     }
     
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setEroare('Your session has expired. Please log in again.');
+      return;
+    }
+    
     setLoading(true);
     setEroare('');
     
     try {
-      // Conectarea directă la serverul de pe Render (Baza de date reală)
-      const token = localStorage.getItem('token'); // Presupunem că managerul e logat și are token
-      
       const payload = {
         nume,
         apartament_numar: ap,
@@ -46,6 +49,10 @@ function AdaugaChirias() {
         },
         body: JSON.stringify(payload)
       });
+
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('Invalid or expired login session.');
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -181,18 +188,8 @@ function AdaugaChirias() {
             </div>
           </div>
 
-          <div style={{ background: '#fcfdf5', border: '1px solid rgba(29,29,27,0.08)', padding: '20px', marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ width: '8px', height: '8px', background: '#1d1d1b', borderRadius: '50%', flexShrink: 0 }} />
-            <p style={{ margin: 0, fontSize: '13px', color: '#666', lineHeight: 1.6 }}>
-              After adding the tenant, they will receive access to their personal dashboard where they can view documents, invoices and submit maintenance requests.
-            </p>
-          </div>
-
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Link
-              to="/manager/tenants"
-              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px' }}
-            >
+            <Link to="/manager/tenants" style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px' }}>
               Cancel
             </Link>
             <button

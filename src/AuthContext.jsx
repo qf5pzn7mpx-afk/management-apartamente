@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('authUser');
-    const storedToken = localStorage.getItem('authToken');
+    const storedToken = localStorage.getItem('token'); 
     
     if (storedUser && storedToken) {
       try {
@@ -20,17 +20,16 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  
   const login = (userData, authToken) => {
     localStorage.setItem('authUser', JSON.stringify(userData));
-    localStorage.setItem('authToken', authToken);
+    localStorage.setItem('token', authToken); 
     setUser(userData);
     setToken(authToken);
   };
 
   const logout = () => {
     localStorage.removeItem('authUser');
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
     setUser(null);
     setToken(null);
   };
