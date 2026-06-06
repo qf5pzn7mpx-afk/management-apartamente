@@ -16,26 +16,21 @@ export default function ManagerDashboard() {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem('token') || '';
-        const headers = { 
+        const headers = {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
+          'Authorization': `Bearer ${token}`
         };
-
         const baseUrl = 'https://management-apartamente-api.onrender.com/api';
-
-        // Tragem simultan absolut toate datele din baza de date reală
         const [resTenants, resDocs, resMaint, resInv] = await Promise.all([
           fetch(`${baseUrl}/chiriasi`, { headers }).catch(() => ({ ok: false })),
           fetch(`${baseUrl}/documente`, { headers }).catch(() => ({ ok: false })),
           fetch(`${baseUrl}/mentenanta`, { headers }).catch(() => ({ ok: false })),
           fetch(`${baseUrl}/facturi`, { headers }).catch(() => ({ ok: false }))
         ]);
-
         const t = resTenants.ok ? await resTenants.json() : [];
         const d = resDocs.ok ? await resDocs.json() : [];
         const c = resMaint.ok ? await resMaint.json() : [];
         const f = resInv.ok ? await resInv.json() : [];
-
         setTenants(Array.isArray(t) ? t : []);
         setDocumente(Array.isArray(d) ? d : []);
         setCereri(Array.isArray(c) ? c : []);
@@ -46,26 +41,23 @@ export default function ManagerDashboard() {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, []);
 
-  // Actualizat ca să recunoască noile statusuri în engleză ("Unpaid" și "Resolved") 
-  // dar le păstrăm și pe cele vechi pentru orice eventualitate.
   const cereriUrgente = cereri.filter(c => c.prioritate === 'High' && c.status !== 'Rezolvată' && c.status !== 'Resolved');
   const facturiNeplatite = facturi.filter(f => f.status === 'Neplătită' || f.status === 'Unpaid');
 
   const quickActions = [
     { label: 'Add Tenant', icon: '👤', link: '/adauga-chirias', desc: 'Register a new tenant' },
     { label: 'Add Invoice', icon: '🧾', link: '/adauga-factura', desc: 'Create a new invoice' },
-    { label: 'New Request', icon: '🔧', link: '/raporteaza-problema', desc: 'Report maintenance issue' },
+    { label: 'Messages', icon: '💬', link: '/manager/messages', desc: 'Chat with tenants' },
     { label: 'Add Document', icon: '📄', link: '/adauga-document', desc: 'Upload a document' },
   ];
 
   const stats = [
     { label: 'TENANTS', value: loading ? '—' : tenants.length, sub: 'Total registered', link: '/manager/tenants' },
     { label: 'MAINTENANCE', value: loading ? '—' : cereri.length, sub: 'Active requests', link: '/mentenanta' },
-    { label: 'REVENUE', value: '32.400 RON', sub: 'This month', link: '/facturi' },
+    { label: 'INVOICES', value: loading ? '—' : facturi.length, sub: 'Total invoices', link: '/facturi' },
     { label: 'DOCUMENTS', value: loading ? '—' : documente.length, sub: 'Total uploaded', link: '/documente' },
   ];
 
@@ -130,8 +122,8 @@ export default function ManagerDashboard() {
                   key={action.label}
                   onClick={() => navigate(action.link)}
                   style={{ padding: '20px', border: '1px solid rgba(29,29,27,0.12)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; e.currentTarget.style.color = '#fff' }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.12)'; e.currentTarget.style.color = '#1d1d1b' }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.12)'; e.currentTarget.style.color = '#1d1d1b'; }}
                 >
                   <div style={{ fontSize: '22px', marginBottom: '10px' }}>{action.icon}</div>
                   <div style={{ fontSize: '14px', color: 'inherit', fontWeight: 600, marginBottom: '4px' }}>{action.label}</div>
@@ -154,6 +146,9 @@ export default function ManagerDashboard() {
                   <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Urgent</span>
                   <h3 style={{ fontFamily: 'Forum, serif', fontSize: '24px', fontWeight: 400, color: '#1d1d1b', margin: 0 }}>Needs Attention</h3>
                 </div>
+                <Link to="/manager/messages" style={{ fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '1px' }}>
+                  Messages →
+                </Link>
               </div>
               {cereriUrgente.length === 0 && facturiNeplatite.length === 0 ? (
                 <div style={{ padding: '30px', textAlign: 'center', border: '1px dashed rgba(29,29,27,0.15)', color: '#999', fontSize: '14px' }}>

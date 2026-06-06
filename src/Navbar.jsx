@@ -24,12 +24,21 @@ function Navbar() {
 
   const navLinks = [
     { to: '/', label: 'Home' },
-    ...(userRole === 'manager' ? [{ to: '/manager/dashboard', label: 'Dashboard' }] : []),
-    ...(userRole === 'chirias' ? [{ to: '/chirias/dashboard', label: 'Dashboard' }] : []),
-    { to: '/facturi', label: 'Invoices' },
-    { to: '/mentenanta', label: 'Maintenance' },
-    { to: '/documente', label: 'Documents' },
-    { to: '/contact', label: 'Contact' },
+    ...(userRole === 'manager' ? [
+      { to: '/manager/dashboard', label: 'Dashboard' },
+      { to: '/manager/messages', label: 'Messages' },
+      { to: '/facturi', label: 'Invoices' },
+      { to: '/mentenanta', label: 'Maintenance' },
+      { to: '/documente', label: 'Documents' },
+    ] : []),
+    ...(userRole === 'chirias' ? [
+      { to: '/chirias/dashboard', label: 'Dashboard' },
+      { to: '/chirias/invoices', label: 'Invoices' },
+      { to: '/chirias/maintenance', label: 'Maintenance' },
+      { to: '/chirias/documents', label: 'Documents' },
+      { to: '/contact', label: 'Contact' },
+    ] : []),
+    ...(!userRole ? [{ to: '/contact', label: 'Contact' }] : []),
   ];
 
   return (
@@ -56,10 +65,14 @@ function Navbar() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+
             {userRole && (
-              <span style={{ fontSize: '12px', letterSpacing: '0.15em', color: '#888', textTransform: 'uppercase', display: 'none' }} className="role-badge">
-                {userRole === 'manager' ? 'Manager' : 'Tenant'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: '#fcfdf5', border: '1px solid rgba(29,29,27,0.1)' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2d7a2d' }} />
+                <span style={{ fontSize: '12px', letterSpacing: '0.15em', color: '#888', textTransform: 'uppercase' }}>
+                  {userRole === 'manager' ? 'Manager' : 'Tenant'}
+                </span>
+              </div>
             )}
 
             {userRole ? (
@@ -95,9 +108,9 @@ function Navbar() {
         </div>
 
         {meniuDeschis && (
-          <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, bottom: 0, background: '#f9fafa', zIndex: 999, display: 'flex', flexDirection: 'column', padding: '60px 40px' }}>
+          <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, bottom: 0, background: '#f9fafa', zIndex: 999, display: 'flex', flexDirection: 'column', padding: '60px 40px', overflowY: 'auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-              {navLinks.map((link, i) => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
@@ -114,9 +127,12 @@ function Navbar() {
 
             <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '40px', borderTop: '1px solid rgba(29,29,27,0.08)' }}>
               {userRole && (
-                <span style={{ fontSize: '12px', letterSpacing: '0.2em', color: '#888', textTransform: 'uppercase' }}>
-                  Signed in as {userRole === 'manager' ? 'Manager' : 'Tenant'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2d7a2d' }} />
+                  <span style={{ fontSize: '12px', letterSpacing: '0.2em', color: '#888', textTransform: 'uppercase' }}>
+                    Signed in as {userRole === 'manager' ? 'Manager' : 'Tenant'}
+                  </span>
+                </div>
               )}
               {userRole ? (
                 <button
@@ -145,7 +161,7 @@ function Navbar() {
         .hamburger-btn {
           display: none;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .desktop-nav {
             display: none !important;
           }
@@ -153,7 +169,7 @@ function Navbar() {
             display: flex !important;
           }
         }
-        @media (min-width: 769px) {
+        @media (min-width: 901px) {
           .hamburger-btn {
             display: flex;
           }
