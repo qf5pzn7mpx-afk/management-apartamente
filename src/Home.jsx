@@ -310,7 +310,7 @@ function TestimonialsSection() {
 function ContactSection() {
   const titleRef = useRef(null);
   
-  
+  // Starea internă pentru prinderea datelor din input-uri
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
@@ -332,8 +332,11 @@ function ContactSection() {
     );
   }, { scope: titleRef });
 
-  const handleSubmit = () => {
-    if (!firstName || !lastName || !email || !message) {
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
+    
+    // Validarea câmpurilor obligatorii
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !message.trim()) {
       setStatus({ type: 'error', text: 'Please fill in all required fields (*).' });
       return;
     }
@@ -341,7 +344,7 @@ function ContactSection() {
     setLoading(true);
     setStatus({ type: '', text: '' });
 
-    
+    // Simulăm trimiterea cu succes a mesajului
     setTimeout(() => {
       setStatus({ type: 'success', text: 'Message sent successfully! We will contact you soon.' });
       setFirstName('');
@@ -350,9 +353,6 @@ function ContactSection() {
       setPhone('');
       setMessage('');
       setLoading(false);
-      
-     
-      setTimeout(() => setStatus({ type: '', text: '' }), 5000);
     }, 1000);
   };
 
@@ -365,15 +365,16 @@ function ContactSection() {
       <div className="contact-form-box">
         <h3 className="contact-form-title">Don't Wait, Reach Out Now</h3>
         
-        {/* Afișarea mesajelor de eroare sau succes */}
+        {/* Mesaje de succes sau eroare vizibile */}
         {status.text && (
           <div style={{ 
-            padding: '12px 16px', 
-            marginBottom: '20px', 
+            padding: '14px 20px', 
+            marginBottom: '25px', 
             fontSize: '14px',
             backgroundColor: status.type === 'error' ? '#fff0f0' : '#f0fff0',
             border: `1px solid ${status.type === 'error' ? '#ffcccc' : '#ccffcc'}`,
-            color: status.type === 'error' ? '#cc0000' : '#007700'
+            color: status.type === 'error' ? '#cc0000' : '#007700',
+            textAlign: 'left'
           }}>
             {status.text}
           </div>
@@ -382,26 +383,53 @@ function ContactSection() {
         <div className="contact-form-grid">
           <div className="contact-field">
             <label className="contact-label">First name *</label>
-            <input className="contact-input" type="text" value={firstName} onChange={e => setFirstName(e.target.value)} />
+            <input 
+              className="contact-input" 
+              type="text" 
+              value={firstName} 
+              onChange={e => setFirstName(e.target.value)} 
+            />
           </div>
           <div className="contact-field">
             <label className="contact-label">Last name *</label>
-            <input className="contact-input" type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
+            <input 
+              className="contact-input" 
+              type="text" 
+              value={lastName} 
+              onChange={e => setLastName(e.target.value)} 
+            />
           </div>
           <div className="contact-field">
             <label className="contact-label">Email *</label>
-            <input className="contact-input" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+            <input 
+              className="contact-input" 
+              type="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+            />
           </div>
           <div className="contact-field">
             <label className="contact-label">Phone</label>
-            <input className="contact-input" type="tel" value={phone} onChange={e => setPhone(e.target.value)} />
+            <input 
+              className="contact-input" 
+              type="tel" 
+              value={phone} 
+              onChange={e => setPhone(e.target.value)} 
+            />
           </div>
           <div className="contact-field contact-field-full">
             <label className="contact-label">Message *</label>
-            <textarea className="contact-input contact-textarea" rows={4} value={message} onChange={e => setMessage(e.target.value)} />
+            <textarea 
+              className="contact-input contact-textarea" 
+              rows={4} 
+              value={message} 
+              onChange={e => setMessage(e.target.value)} 
+            />
           </div>
         </div>
+        
         <button 
+          type="button"
           className="contact-submit" 
           onClick={handleSubmit}
           disabled={loading}
