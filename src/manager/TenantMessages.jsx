@@ -3,53 +3,82 @@ import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../Navbar';
 import mockApi from '../api/mockApi';
 
-const mockMessages = [
-  { id: 1, tenantId: 1, tenantName: 'Ioana Popescu', apartment: '3A', message: 'Buna ziua, am o problema cu caloriferul din dormitor, nu mai incalzeste.', time: '10:24', date: 'Today', unread: true },
-  { id: 2, tenantId: 2, tenantName: 'Andrei Ionescu', apartment: '5B', message: 'Multumesc pentru reparatia rapida la usa!', time: '09:11', date: 'Today', unread: false },
-  { id: 3, tenantId: 3, tenantName: 'Maria Georgescu', apartment: '2C', message: 'Cand vine factura pentru luna aceasta?', time: 'Yesterday', date: 'Yesterday', unread: true },
+const mockInbox = [
+  {
+    id: 1,
+    tenantId: 1,
+    tenantName: 'Ioana Popescu',
+    apartment: '3A',
+    subject: 'Problema cu caloriferul',
+    message: 'Buna ziua, am o problema cu caloriferul din dormitor. Nu mai incalzeste de 2 zile si as dori sa trimiteti un tehnician cat mai curand posibil. Multumesc!',
+    date: '06 Jun 2026',
+    time: '10:24',
+    unread: true,
+    category: 'Maintenance',
+  },
+  {
+    id: 2,
+    tenantId: 2,
+    tenantName: 'Andrei Ionescu',
+    apartment: '5B',
+    subject: 'Multumire pentru reparatie',
+    message: 'Buna ziua, voiam sa va multumesc pentru reparatia rapida la usa de la intrare. Echipa a fost foarte profesionista si punctuala.',
+    date: '05 Jun 2026',
+    time: '09:11',
+    unread: false,
+    category: 'General',
+  },
+  {
+    id: 3,
+    tenantId: 3,
+    tenantName: 'Maria Georgescu',
+    apartment: '2C',
+    subject: 'Intrebare despre factura',
+    message: 'Buna ziua, as dori sa stiu cand vine factura pentru luna iunie. De asemenea, as vrea sa verific daca suma pentru intretinere este corecta. Va multumesc.',
+    date: '04 Jun 2026',
+    time: '14:30',
+    unread: true,
+    category: 'Invoice',
+  },
+  {
+    id: 4,
+    tenantId: 1,
+    tenantName: 'Ioana Popescu',
+    apartment: '3A',
+    subject: 'Reinnoire contract',
+    message: 'Buna ziua, contractul meu expira luna viitoare si as dori sa discutam despre reinnoirea acestuia. Sunt interesata sa raman in apartament. Va rog sa ma contactati.',
+    date: '01 Jun 2026',
+    time: '11:00',
+    unread: false,
+    category: 'Contract',
+  },
 ];
 
+const categoryColors = {
+  Maintenance: { bg: '#fff0f0', color: '#cc0000' },
+  Invoice: { bg: '#f8f0e8', color: '#8a5a2d' },
+  Contract: { bg: '#e8eef8', color: '#2d4a8a' },
+  General: { bg: '#f0f0f0', color: '#555' },
+};
+
 export default function TenantMessages() {
-  const [tenants, setTenants] = useState([]);
-  const [selectedTenant, setSelectedTenant] = useState(null);
-  const [messages, setMessages] = useState(mockMessages);
-  const [newMessage, setNewMessage] = useState('');
-  const [conversation, setConversation] = useState([]);
+  const [messages, setMessages] = useState(mockInbox);
+  const [selected, setSelected] = useState(null);
+  const [filtruActiv, setFiltruActiv] = useState('All');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    mockApi.getTenants()
-      .then(data => setTenants(Array.isArray(data) ? data : []))
-      .catch(() => setTenants([]));
-  }, []);
-
-  const mockConversations = {
-    1: [
-      { id: 1, from: 'tenant', text: 'Buna ziua, am o problema cu caloriferul din dormitor, nu mai incalzeste.', time: '10:24' },
-      { id: 2, from: 'manager', text: 'Buna ziua! Trimitem un tehnician maine intre 10-12. Va rog sa fiti acasa.', time: '10:45' },
-      { id: 3, from: 'tenant', text: 'Multumesc, voi fi acasa!', time: '10:47' },
-    ],
-    2: [
-      { id: 1, from: 'tenant', text: 'Multumesc pentru reparatia rapida la usa!', time: '09:11' },
-      { id: 2, from: 'manager', text: 'Cu placere! Anuntati-ne daca mai aveti nevoie de ceva.', time: '09:30' },
-    ],
-    3: [
-      { id: 1, from: 'tenant', text: 'Cand vine factura pentru luna aceasta?', time: 'Yesterday' },
-    ],
-  };
-
-  const handleSelectTenant = (msg) => {
-    setSelectedTenant(msg);
-    setConversation(mockConversations[msg.tenantId] || []);
+  const handleSelect = (msg) => {
+    setSelected(msg);
     setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, unread: false } : m));
   };
 
-  const handleSend = () => {
-    if (!newMessage.trim()) return;
-    const nou = { id: Date.now(), from: 'manager', text: newMessage, time: new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }) };
-    setConversation(prev => [...prev, nou]);
-    setNewMessage('');
-  };
+  const filtre = ['All', 'Unread', 'Maintenance', 'Invoice', 'Contract', 'General'];
+
+  const messageFiltrate = messages.filter(m => {
+    if (filtruActiv === 'All') return true;
+    if (filtruActiv === 'Unread') return m.unread;
+    return m.category === filtruActiv;
+  });
 
   const unreadCount = messages.filter(m => m.unread).length;
 
@@ -63,155 +92,162 @@ export default function TenantMessages() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
           <h1 style={{ fontFamily: 'Forum, serif', fontSize: '64px', fontWeight: 400, color: '#1d1d1b', lineHeight: 1.1, textTransform: 'uppercase', margin: 0 }}>
-            Tenant<br />Messages
+            Tenant<br />Inbox
           </h1>
           {unreadCount > 0 && (
-            <div style={{ background: '#cc0000', color: '#fff', padding: '8px 20px', fontSize: '13px', fontFamily: 'Helvetica, sans-serif' }}>
-              {unreadCount} unread message{unreadCount > 1 ? 's' : ''}
+            <div style={{ background: '#cc0000', color: '#fff', padding: '8px 20px', fontSize: '13px', alignSelf: 'flex-end' }}>
+              {unreadCount} unread
             </div>
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '2px', height: '600px' }}>
+        <div style={{ display: 'flex', gap: '0', marginBottom: '2px' }}>
+          {filtre.map(f => (
+            <button
+              key={f}
+              onClick={() => setFiltruActiv(f)}
+              style={{ padding: '10px 20px', fontSize: '13px', border: '1px solid rgba(29,29,27,0.2)', background: filtruActiv === f ? '#1d1d1b' : '#fff', color: filtruActiv === f ? '#f9fafa' : '#1d1d1b', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', marginRight: '-1px', transition: 'all 0.2s' }}
+            >
+              {f}
+              {f === 'Unread' && unreadCount > 0 && (
+                <span style={{ marginLeft: '6px', background: '#cc0000', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-          <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(29,29,27,0.08)', background: '#fcfdf5' }}>
-              <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>Conversations</span>
-            </div>
-            <div style={{ overflowY: 'auto', flex: 1 }}>
-              {messages.map(msg => (
+        <div style={{ display: 'grid', gridTemplateColumns: selected ? '380px 1fr' : '1fr', gap: '2px' }}>
+
+          <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff' }}>
+            {!selected && (
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 100px', padding: '12px 24px', background: '#fcfdf5', borderBottom: '1px solid rgba(29,29,27,0.08)' }}>
+                {['FROM', 'SUBJECT', 'DATE', ''].map(col => (
+                  <span key={col} style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', textTransform: 'uppercase' }}>{col}</span>
+                ))}
+              </div>
+            )}
+
+            {messageFiltrate.length === 0 ? (
+              <div style={{ padding: '60px', textAlign: 'center', color: '#999', fontSize: '14px' }}>No messages found.</div>
+            ) : (
+              messageFiltrate.map((msg, i) => (
                 <div
                   key={msg.id}
-                  onClick={() => handleSelectTenant(msg)}
+                  onClick={() => handleSelect(msg)}
                   style={{
-                    padding: '18px 20px',
-                    borderBottom: '1px solid rgba(29,29,27,0.06)',
+                    padding: selected ? '16px 20px' : '20px 24px',
+                    borderBottom: i < messageFiltrate.length - 1 ? '1px solid rgba(29,29,27,0.06)' : 'none',
                     cursor: 'pointer',
-                    background: selectedTenant?.id === msg.id ? '#f5f0eb' : msg.unread ? '#fcfdf5' : '#fff',
+                    background: selected?.id === msg.id ? '#f5f0eb' : msg.unread ? '#fcfdf5' : '#fff',
                     transition: 'background 0.15s',
-                    display: 'flex',
-                    gap: '12px',
-                    alignItems: 'flex-start',
+                    display: selected ? 'block' : 'grid',
+                    gridTemplateColumns: selected ? 'none' : '2fr 1fr 1fr 100px',
+                    alignItems: 'center',
+                    gap: selected ? '0' : '0',
                   }}
-                  onMouseOver={e => { if (selectedTenant?.id !== msg.id) e.currentTarget.style.background = '#f9faf5'; }}
-                  onMouseOut={e => { if (selectedTenant?.id !== msg.id) e.currentTarget.style.background = msg.unread ? '#fcfdf5' : '#fff'; }}
+                  onMouseOver={e => { if (selected?.id !== msg.id) e.currentTarget.style.background = '#fcfdf5'; }}
+                  onMouseOut={e => { if (selected?.id !== msg.id) e.currentTarget.style.background = msg.unread ? '#fcfdf5' : '#fff'; }}
                 >
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#1d1d1b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ color: '#f9fafa', fontSize: '14px', fontWeight: 600 }}>
-                      {msg.tenantName[0]}
-                    </span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '14px', color: '#1d1d1b', fontWeight: msg.unread ? 600 : 400 }}>{msg.tenantName}</span>
-                      <span style={{ fontSize: '11px', color: '#999' }}>{msg.time}</span>
+                  {selected ? (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                        {msg.unread && <div style={{ width: '6px', height: '6px', background: '#cc0000', borderRadius: '50%', flexShrink: 0 }} />}
+                        <span style={{ fontSize: '14px', color: '#1d1d1b', fontWeight: msg.unread ? 600 : 400 }}>{msg.tenantName}</span>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#555', marginBottom: '2px', paddingLeft: msg.unread ? '16px' : '0' }}>{msg.subject}</div>
+                      <div style={{ fontSize: '11px', color: '#999', paddingLeft: msg.unread ? '16px' : '0' }}>{msg.date}</div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Apt. {msg.apartment}</div>
-                    <div style={{ fontSize: '13px', color: '#555', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {msg.message}
-                    </div>
-                    {msg.unread && (
-                      <div style={{ width: '8px', height: '8px', background: '#cc0000', borderRadius: '50%', marginTop: '6px' }} />
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {tenants.filter(t => !messages.find(m => m.tenantId === t.id)).map(t => (
-                <div
-                  key={t.id}
-                  onClick={() => handleSelectTenant({ id: t.id + 100, tenantId: t.id, tenantName: t.nume || t.name, apartment: t.apartament_id || '—', message: 'No messages yet', time: '', unread: false })}
-                  style={{ padding: '18px 20px', borderBottom: '1px solid rgba(29,29,27,0.06)', cursor: 'pointer', background: '#fff', display: 'flex', gap: '12px', alignItems: 'center', transition: 'background 0.15s' }}
-                  onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
-                  onMouseOut={e => e.currentTarget.style.background = '#fff'}
-                >
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(29,29,27,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ color: '#1d1d1b', fontSize: '14px', fontWeight: 600 }}>
-                      {(t.nume || t.name || '?')[0].toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '14px', color: '#1d1d1b' }}>{t.nume || t.name}</div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>Apt. {t.apartament_id || '—'} · No messages</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {selectedTenant ? (
-            <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(29,29,27,0.08)', background: '#fcfdf5', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#1d1d1b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: '#f9fafa', fontSize: '13px', fontWeight: 600 }}>{selectedTenant.tenantName[0]}</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{selectedTenant.tenantName}</div>
-                  <div style={{ fontSize: '12px', color: '#999' }}>Apt. {selectedTenant.apartment}</div>
-                </div>
-                <Link
-                  to={`/manager/tenants/${selectedTenant.tenantId}`}
-                  style={{ marginLeft: 'auto', fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '1px' }}
-                >
-                  View Profile →
-                </Link>
-              </div>
-
-              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {conversation.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#999', fontSize: '14px', marginTop: '40px' }}>
-                    No messages yet. Start the conversation!
-                  </div>
-                ) : (
-                  conversation.map(msg => (
-                    <div
-                      key={msg.id}
-                      style={{ display: 'flex', flexDirection: msg.from === 'manager' ? 'row-reverse' : 'row', gap: '10px', alignItems: 'flex-end' }}
-                    >
-                      <div style={{
-                        maxWidth: '70%',
-                        padding: '12px 16px',
-                        background: msg.from === 'manager' ? '#1d1d1b' : '#f5f0eb',
-                        color: msg.from === 'manager' ? '#f9fafa' : '#1d1d1b',
-                        fontSize: '14px',
-                        lineHeight: 1.6,
-                      }}>
-                        {msg.text}
-                        <div style={{ fontSize: '11px', color: msg.from === 'manager' ? 'rgba(249,250,250,0.5)' : '#999', marginTop: '6px', textAlign: 'right' }}>
-                          {msg.time}
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {msg.unread && <div style={{ width: '6px', height: '6px', background: '#cc0000', borderRadius: '50%', flexShrink: 0 }} />}
+                        <div>
+                          <div style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: msg.unread ? 600 : 400 }}>{msg.tenantName}</div>
+                          <div style={{ fontSize: '12px', color: '#999' }}>Apt. {msg.apartment}</div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                      <div style={{ fontSize: '14px', color: '#555', paddingRight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.subject}</div>
+                      <div style={{ fontSize: '13px', color: '#999' }}>{msg.date}</div>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', fontSize: '11px', background: categoryColors[msg.category]?.bg, color: categoryColors[msg.category]?.color }}>
+                        {msg.category}
+                      </span>
+                    </>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {selected && (
+            <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '24px 30px', borderBottom: '1px solid rgba(29,29,27,0.08)', background: '#fcfdf5', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', textTransform: 'uppercase', marginBottom: '8px' }}>Message</div>
+                  <h3 style={{ fontFamily: 'Forum, serif', fontSize: '22px', fontWeight: 400, color: '#1d1d1b', margin: '0 0 8px 0' }}>{selected.subject}</h3>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: '#555' }}>From: <strong>{selected.tenantName}</strong> — Apt. {selected.apartment}</span>
+                    <span style={{ display: 'inline-block', padding: '3px 10px', fontSize: '11px', background: categoryColors[selected.category]?.bg, color: categoryColors[selected.category]?.color }}>
+                      {selected.category}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '13px', color: '#999' }}>{selected.date}</div>
+                  <div style={{ fontSize: '13px', color: '#999' }}>{selected.time}</div>
+                </div>
               </div>
 
-              <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(29,29,27,0.08)', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <input
-                  value={newMessage}
-                  onChange={e => setNewMessage(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSend()}
-                  placeholder="Type a message..."
-                  style={{ flex: 1, padding: '12px 16px', border: '1px solid rgba(29,29,27,0.2)', background: '#fcfdf5', fontSize: '14px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif' }}
-                />
-                <button
-                  onClick={handleSend}
-                  style={{ background: '#1d1d1b', color: '#f9fafa', border: 'none', padding: '12px 24px', fontSize: '14px', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', transition: 'opacity 0.2s', whiteSpace: 'nowrap' }}
-                  onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
-                  onMouseOut={e => e.currentTarget.style.opacity = '1'}
+              <div style={{ padding: '30px', flex: 1 }}>
+                <p style={{ fontSize: '15px', color: '#1d1d1b', lineHeight: 1.8, margin: 0 }}>{selected.message}</p>
+              </div>
+
+              <div style={{ padding: '20px 30px', borderTop: '1px solid rgba(29,29,27,0.08)', display: 'flex', gap: '12px' }}>
+                <Link
+                  to={`/manager/tenants/${selected.tenantId}`}
+                  style={{ padding: '10px 20px', border: '1px solid rgba(29,29,27,0.2)', fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', transition: 'all 0.2s' }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.color = '#f9fafa'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1b'; }}
                 >
-                  Send →
+                  View Tenant Profile →
+                </Link>
+                {selected.category === 'Maintenance' && (
+                  <Link
+                    to="/mentenanta"
+                    style={{ padding: '10px 20px', border: '1px solid #ffcccc', background: '#fff0f0', fontSize: '13px', color: '#cc0000', textDecoration: 'none' }}
+                  >
+                    Go to Maintenance →
+                  </Link>
+                )}
+                {selected.category === 'Invoice' && (
+                  <Link
+                    to="/facturi"
+                    style={{ padding: '10px 20px', border: '1px solid #f0d0a0', background: '#f8f0e8', fontSize: '13px', color: '#8a5a2d', textDecoration: 'none' }}
+                  >
+                    Go to Invoices →
+                  </Link>
+                )}
+                <button
+                  onClick={() => setSelected(null)}
+                  style={{ marginLeft: 'auto', padding: '10px 20px', border: 'none', background: 'none', fontSize: '13px', color: '#999', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif' }}
+                >
+                  ✕ Close
                 </button>
               </div>
             </div>
-          ) : (
-            <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fcfdf5', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
-              <div style={{ fontSize: '48px' }}>💬</div>
-              <h3 style={{ fontFamily: 'Forum, serif', fontSize: '24px', fontWeight: 400, color: '#1d1d1b', margin: 0 }}>Select a Conversation</h3>
-              <p style={{ fontSize: '14px', color: '#999', margin: 0 }}>Choose a tenant from the left to view messages</p>
-            </div>
           )}
         </div>
+
+        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fcfdf5', padding: '16px 24px', marginTop: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', color: '#999' }}>
+            Showing <strong style={{ color: '#1d1d1b' }}>{messageFiltrate.length}</strong> of <strong style={{ color: '#1d1d1b' }}>{messages.length}</strong> messages
+          </span>
+          <Link to="/manager/dashboard" style={{ fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '1px' }}>
+            ← Back to Dashboard
+          </Link>
+        </div>
+
       </div>
     </div>
   );

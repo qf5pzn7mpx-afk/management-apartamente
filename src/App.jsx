@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import TenantMessages from './manager/TenantMessages';
+import SendMessage from './chirias/SendMessage';
 
 import mockApi from './api/mockApi';
 
@@ -89,6 +90,8 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/tenant-documents" element={<TenantDocuments />} />
             <Route path="/manager/messages" element={<ProtectedRoute allowedRoles={['manager']}><TenantMessages /></ProtectedRoute>} />
+
+<Route path="/chirias/message" element={<ProtectedRoute allowedRoles={['chirias']}><SendMessage /></ProtectedRoute>} />
 
             <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
             <Route path="/chirias" element={<Navigate to="/chirias/dashboard" replace />} />
