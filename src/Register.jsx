@@ -28,7 +28,6 @@ function Register() {
     setLoading(true);
 
     try {
-     
       const validRole = rol ? rol.toLowerCase() : 'chirias';
 
       const response = await fetch('https://management-apartamente-api.onrender.com/api/auth/register', {
@@ -75,38 +74,27 @@ function Register() {
                   <div style={{ width: '8px', height: '8px', background: '#2d7a2d', borderRadius: '50%' }} />
                   <span style={{ fontSize: '12px', letterSpacing: '0.2em', color: '#2d7a2d', textTransform: 'uppercase' }}>New Account</span>
                 </div>
-                <h1 style={{ fontFamily: 'Forum, serif', fontSize: '56px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: '0 0 20px 0' }}>
-                  Create Your Account
-                </h1>
+                
+                <h2 style={{ fontFamily: 'Forum, serif', fontSize: '40px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', margin: '0 0 50px 0' }}>
+                  Create Your<br />Tenant Account
+                </h2>
+
                 <p style={{ fontSize: '16px', color: '#888', lineHeight: 1.7, margin: 0 }}>
-                  Select your role to get started
+                  Click below to proceed with your registration
                 </p>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
-                <button
-                  onClick={() => setRol('manager')}
-                  style={{ padding: '30px', border: '1px solid rgba(29,29,27,0.15)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; e.currentTarget.style.color = '#fff' }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; e.currentTarget.style.color = '#1d1d1b' }}
-                >
-                  <div>
-                    <div style={{ fontSize: '20px', color: 'inherit', fontWeight: 500, marginBottom: '6px' }}>Manager</div>
-                    <div style={{ fontSize: '14px', color: 'inherit', opacity: 0.6 }}>Full access to all properties, tenants and invoices</div>
-                  </div>
-                  <span style={{ fontSize: '24px', color: 'inherit' }}>→</span>
-                </button>
-
-                <button
-                  onClick={() => setRol('chirias')}
-                  style={{ padding: '30px', border: '1px solid rgba(29,29,27,0.15)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.borderColor = '#1d1d1b'; e.currentTarget.style.color = '#fff' }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(29,29,27,0.15)'; e.currentTarget.style.color = '#1d1d1b' }}
-                >
-                  <div>
-                    <div style={{ fontSize: '20px', color: 'inherit', fontWeight: 500, marginBottom: '6px' }}>Tenant</div>
-                    <div style={{ fontSize: '14px', color: 'inherit', opacity: 0.6 }}>Access your documents, invoices and maintenance requests</div>
-                  </div>
+                <button  
+                  onClick={() => setRol('chirias')}  
+                  style={{ padding: '28px 30px', border: '1px solid rgba(29,29,27,0.15)', background: '#fff', cursor: 'pointer', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', color: '#1d1d1b' }}  
+                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.color = '#fff'; }}  
+                  onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#1d1d1b'; }}
+                >  
+                  <div>    
+                    <div style={{ fontSize: '20px', color: 'inherit', fontWeight: 500, marginBottom: '6px' }}>Tenant</div>    
+                    <div style={{ fontSize: '14px', color: 'inherit', opacity: 0.6 }}>I rent a property</div>  
+                  </div>  
                   <span style={{ fontSize: '24px', color: 'inherit' }}>→</span>
                 </button>
               </div>
@@ -125,12 +113,12 @@ function Register() {
                   onClick={() => { setRol(null); setMesaj({ tip: '', text: '' }); }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#999', padding: 0, fontFamily: 'Helvetica, sans-serif' }}
                 >
-                  ← Back
+                  &larr; Back
                 </button>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#e8f4e8', padding: '6px 14px' }}>
                   <div style={{ width: '6px', height: '6px', background: '#2d7a2d', borderRadius: '50%' }} />
                   <span style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#2d7a2d', textTransform: 'uppercase' }}>
-                    {rol === 'manager' ? 'Manager' : 'Tenant'} Registration
+                    Tenant Registration
                   </span>
                 </div>
               </div>
@@ -213,7 +201,7 @@ function Register() {
               <div style={{ borderTop: '1px solid rgba(29,29,27,0.1)', marginTop: '30px', paddingTop: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '14px', color: '#999' }}>Already have an account?</span>
                 <Link to="/login" style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '1px' }}>
-                  Sign in here →
+                  Sign in here &rarr;
                 </Link>
               </div>
             </div>
