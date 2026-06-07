@@ -118,7 +118,6 @@ db.exec(`
     data_trimiterii TEXT DEFAULT (datetime('now'))
   );
 
-  -- Noul tabel pentru recenzii
   CREATE TABLE IF NOT EXISTS reviews (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     author TEXT NOT NULL,
@@ -127,39 +126,47 @@ db.exec(`
   );
 `);
 
-
 const checkManager = db.prepare("SELECT * FROM utilizatori WHERE rol = 'manager'").get();
-
 if (!checkManager) {
-  
   const hash = bcrypt.hashSync("ParolaManager123!", 10); 
   db.prepare("INSERT INTO utilizatori (email, parola, rol) VALUES (?, ?, ?)").run("manager@eif.ro", hash, "manager");
-  console.log("🔑 Contul unic de manager a fost creat cu succes! (manager@eif.ro)");
+  console.log("🔑 Contul de manager a fost creat (manager@eif.ro)");
 }
-
 
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, parola, rol } = req.body;
+    const rolActual = rol || 'chirias';
+
+    
+    if (rolActual === 'chirias') {
+      const chiriasAprobat = db.prepare('SELECT * FROM chiriasi WHERE email = ?').get(email);
+      if (!chiriasAprobat) {
+        return res.status(403).json({ 
+          error: 'This email is not recognized. The manager must add you to the system first.' 
+        });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(parola, 10);
     
     const r = db.prepare(
       'INSERT INTO utilizatori (email, parola, rol) VALUES (?, ?, ?)'
-    ).run(email, hashedPassword, rol || 'chirias');
+    ).run(email, hashedPassword, rolActual);
     
     res.status(201).json({ success: true, id: r.lastInsertRowid, message: 'User created successfully' });
   } catch (err) {
     if (err.message.includes('UNIQUE constraint failed')) {
-      return res.status(400).json({ error: 'This email is already in use.' });
+      return res.status(400).json({ error: 'This email is already registered.' });
     }
     res.status(500).json({ error: err.message });
   }
 });
 
+
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, parola } = req.body;
-    
     const user = db.prepare('SELECT * FROM utilizatori WHERE email = ?').get(email);
     if (!user) return res.status(401).json({ error: 'Incorrect email or password' });
     
@@ -208,15 +215,12 @@ app.post('/api/chiriasi', verifyToken, authorizeRole('manager'), (req, res) => {
 app.delete('/api/chiriasi/:id', verifyToken, authorizeRole('manager'), (req, res) => {
   try {
     const info = db.prepare('DELETE FROM chiriasi WHERE id = ?').run(req.params.id);
-    
     if (info.changes > 0) {
-      console.log(`🗑️ Tenant with ID ${req.params.id} was deleted.`);
       res.json({ success: true });
     } else {
       res.status(404).json({ error: 'Tenant not found.' });
     }
   } catch (err) {
-    console.error("Error deleting tenant:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -285,23 +289,16 @@ app.get('/api/documente', (req, res) => {
 app.post('/api/documente', upload.single('fisier'), (req, res) => {
   try {
     const { nume_fisier, tip, chirias_id } = req.body;
-    
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'Please upload a valid file.' });
     }
-
     const cale = `/uploads/${req.file.filename}`;
-
     const info = db.prepare(`
       INSERT INTO documente (nume_fisier, tip, chirias_id, cale)
       VALUES (?, ?, ?, ?)
     `).run(nume_fisier, tip, chirias_id, cale);
-
-    console.log(`📄 New document added: ${nume_fisier} (ID: ${info.lastInsertRowid})`);
-  
     res.json({ success: true, id: info.lastInsertRowid });
   } catch (err) {
-    console.error("Error saving document:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -309,15 +306,9 @@ app.post('/api/documente', upload.single('fisier'), (req, res) => {
 app.delete('/api/documente/:id', (req, res) => {
   try {
     const info = db.prepare('DELETE FROM documente WHERE id = ?').run(req.params.id);
-    
-    if (info.changes > 0) {
-      console.log(`🗑️ Document with ID ${req.params.id} deleted from the database.`);
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ error: 'Document not found.' });
-    }
+    if (info.changes > 0) res.json({ success: true });
+    else res.status(404).json({ error: 'Document not found.' });
   } catch (err) {
-    console.error("Error deleting document:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -328,16 +319,13 @@ app.get('/api/contact', (req, res) => {
 
 app.post('/api/contact', (req, res) => {
   const { firstName, lastName, email, phone, message } = req.body;
-  
   if (!firstName || !lastName || !email || !message) {
-    return res.status(400).json({ error: 'First name, Last name, Email and Message fields are required.' });
+    return res.status(400).json({ error: 'Fields are required.' });
   }
-  
   try {
     const r = db.prepare(
       'INSERT INTO mesaje_contact (firstName, lastName, email, phone, message) VALUES (?, ?, ?, ?, ?)'
     ).run(firstName, lastName, email, phone || '', message);
-    
     res.json({ success: true, id: r.lastInsertRowid, message: 'Message sent successfully!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -355,17 +343,14 @@ app.get('/api/reviews', (req, res) => {
 
 app.post('/api/reviews', (req, res) => {
   const { author, quote } = req.body;
-  
   if (!author || !quote) {
-    return res.status(400).json({ error: 'Author and quote fields are required.' });
+    return res.status(400).json({ error: 'Fields are required.' });
   }
-  
   try {
     const r = db.prepare(
       'INSERT INTO reviews (author, quote) VALUES (?, ?)'
     ).run(author, quote);
-    
-    res.status(201).json({ success: true, id: r.lastInsertRowid, message: 'Review saved successfully!' });
+    res.status(201).json({ success: true, id: r.lastInsertRowid, message: 'Review saved!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
