@@ -52,7 +52,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-
 db.exec(`
   CREATE TABLE IF NOT EXISTS utilizatori (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -138,7 +137,6 @@ app.post('/api/auth/register', async (req, res) => {
     const { email, parola, rol } = req.body;
     const rolActual = rol || 'chirias';
 
-    
     if (rolActual === 'chirias') {
       const chiriasAprobat = db.prepare('SELECT * FROM chiriasi WHERE email = ?').get(email);
       if (!chiriasAprobat) {
@@ -163,7 +161,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, parola } = req.body;
@@ -173,13 +170,21 @@ app.post('/api/auth/login', async (req, res) => {
     const isMatch = await bcrypt.compare(parola, user.parola);
     if (!isMatch) return res.status(401).json({ error: 'Incorrect email or password' });
     
+    let idReal = user.id;
+    if (user.rol === 'chirias') {
+      const profilChirias = db.prepare('SELECT id FROM chiriasi WHERE email = ?').get(email);
+      if (profilChirias) {
+        idReal = profilChirias.id;
+      }
+    }
+    
     const token = jwt.sign(
-      { id: user.id, rol: user.rol }, 
+      { id: idReal, rol: user.rol }, 
       process.env.JWT_SECRET, 
       { expiresIn: '24h' }
     );
     
-    res.json({ success: true, token, rol: user.rol, id: user.id });
+    res.json({ success: true, token, rol: user.rol, id: idReal });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -207,7 +212,6 @@ app.post('/api/chiriasi', verifyToken, authorizeRole('manager'), (req, res) => {
     
     res.json({ success: true, id: r.lastInsertRowid });
   } catch (err) {
-    console.error("Error saving data:", err);
     res.status(500).json({ error: err.message });
   }
 });
