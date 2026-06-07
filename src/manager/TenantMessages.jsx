@@ -1,58 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../Navbar';
-import mockApi from '../api/mockApi';
-
-const mockInbox = [
-  {
-    id: 1,
-    tenantId: 1,
-    tenantName: 'Ioana Popescu',
-    apartment: '3A',
-    subject: 'Problema cu caloriferul',
-    message: 'Buna ziua, am o problema cu caloriferul din dormitor. Nu mai incalzeste de 2 zile si as dori sa trimiteti un tehnician cat mai curand posibil. Multumesc!',
-    date: '06 Jun 2026',
-    time: '10:24',
-    unread: true,
-    category: 'Maintenance',
-  },
-  {
-    id: 2,
-    tenantId: 2,
-    tenantName: 'Andrei Ionescu',
-    apartment: '5B',
-    subject: 'Multumire pentru reparatie',
-    message: 'Buna ziua, voiam sa va multumesc pentru reparatia rapida la usa de la intrare. Echipa a fost foarte profesionista si punctuala.',
-    date: '05 Jun 2026',
-    time: '09:11',
-    unread: false,
-    category: 'General',
-  },
-  {
-    id: 3,
-    tenantId: 3,
-    tenantName: 'Maria Georgescu',
-    apartment: '2C',
-    subject: 'Intrebare despre factura',
-    message: 'Buna ziua, as dori sa stiu cand vine factura pentru luna iunie. De asemenea, as vrea sa verific daca suma pentru intretinere este corecta. Va multumesc.',
-    date: '04 Jun 2026',
-    time: '14:30',
-    unread: true,
-    category: 'Invoice',
-  },
-  {
-    id: 4,
-    tenantId: 1,
-    tenantName: 'Ioana Popescu',
-    apartment: '3A',
-    subject: 'Reinnoire contract',
-    message: 'Buna ziua, contractul meu expira luna viitoare si as dori sa discutam despre reinnoirea acestuia. Sunt interesata sa raman in apartament. Va rog sa ma contactati.',
-    date: '01 Jun 2026',
-    time: '11:00',
-    unread: false,
-    category: 'Contract',
-  },
-];
 
 const categoryColors = {
   Maintenance: { bg: '#fff0f0', color: '#cc0000' },
@@ -62,10 +10,60 @@ const categoryColors = {
 };
 
 export default function TenantMessages() {
-  const [messages, setMessages] = useState(mockInbox);
+  const [messages, setMessages] = useState([]);
   const [selected, setSelected] = useState(null);
   const [filtruActiv, setFiltruActiv] = useState('All');
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/contact', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          const formattedMessages = data.map(msg => {
+            
+            let category = 'General';
+            let cleanSubject = msg.message || 'No message';
+            
+            const match = msg.message?.match(/^\[(.*?)\] (.*)/);
+            if (match) {
+              category = match[1];
+              cleanSubject = match[2];
+            }
+
+            return {
+              id: msg.id,
+              tenantId: msg.lastName?.replace(/[^0-9]/g, '') || null, 
+              tenantName: msg.firstName || 'Unknown',
+              apartment: '—', 
+              subject: msg.message?.substring(0, 30) + '...' || 'Contact Form',
+              message: cleanSubject,
+              date: msg.data_trimiterii?.split(' ')[0] || '',
+              time: msg.data_trimiterii?.split(' ')[1] || '',
+              unread: true, 
+              category: category,
+              rawEmail: msg.email
+            };
+          });
+
+          setMessages(formattedMessages);
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, []);
 
   const handleSelect = (msg) => {
     setSelected(msg);
@@ -129,7 +127,9 @@ export default function TenantMessages() {
               </div>
             )}
 
-            {messageFiltrate.length === 0 ? (
+            {loading ? (
+              <div style={{ padding: '60px', textAlign: 'center', color: '#999', fontSize: '14px' }}>Loading messages...</div>
+            ) : messageFiltrate.length === 0 ? (
               <div style={{ padding: '60px', textAlign: 'center', color: '#999', fontSize: '14px' }}>No messages found.</div>
             ) : (
               messageFiltrate.map((msg, i) => (
@@ -165,12 +165,12 @@ export default function TenantMessages() {
                         {msg.unread && <div style={{ width: '6px', height: '6px', background: '#cc0000', borderRadius: '50%', flexShrink: 0 }} />}
                         <div>
                           <div style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: msg.unread ? 600 : 400 }}>{msg.tenantName}</div>
-                          <div style={{ fontSize: '12px', color: '#999' }}>Apt. {msg.apartment}</div>
+                          <div style={{ fontSize: '12px', color: '#999' }}>{msg.rawEmail}</div>
                         </div>
                       </div>
                       <div style={{ fontSize: '14px', color: '#555', paddingRight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.subject}</div>
                       <div style={{ fontSize: '13px', color: '#999' }}>{msg.date}</div>
-                      <span style={{ display: 'inline-block', padding: '3px 10px', fontSize: '11px', background: categoryColors[msg.category]?.bg, color: categoryColors[msg.category]?.color }}>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', fontSize: '11px', background: categoryColors[msg.category]?.bg || '#f0f0f0', color: categoryColors[msg.category]?.color || '#555' }}>
                         {msg.category}
                       </span>
                     </>
@@ -187,8 +187,8 @@ export default function TenantMessages() {
                   <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', textTransform: 'uppercase', marginBottom: '8px' }}>Message</div>
                   <h3 style={{ fontFamily: 'Forum, serif', fontSize: '22px', fontWeight: 400, color: '#1d1d1b', margin: '0 0 8px 0' }}>{selected.subject}</h3>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '13px', color: '#555' }}>From: <strong>{selected.tenantName}</strong> — Apt. {selected.apartment}</span>
-                    <span style={{ display: 'inline-block', padding: '3px 10px', fontSize: '11px', background: categoryColors[selected.category]?.bg, color: categoryColors[selected.category]?.color }}>
+                    <span style={{ fontSize: '13px', color: '#555' }}>From: <strong>{selected.tenantName}</strong> ({selected.rawEmail})</span>
+                    <span style={{ display: 'inline-block', padding: '3px 10px', fontSize: '11px', background: categoryColors[selected.category]?.bg || '#f0f0f0', color: categoryColors[selected.category]?.color || '#555' }}>
                       {selected.category}
                     </span>
                   </div>
@@ -204,14 +204,16 @@ export default function TenantMessages() {
               </div>
 
               <div style={{ padding: '20px 30px', borderTop: '1px solid rgba(29,29,27,0.08)', display: 'flex', gap: '12px' }}>
-                <Link
-                  to={`/manager/tenants/${selected.tenantId}`}
-                  style={{ padding: '10px 20px', border: '1px solid rgba(29,29,27,0.2)', fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', transition: 'all 0.2s' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.color = '#f9fafa'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1b'; }}
-                >
-                  View Tenant Profile →
-                </Link>
+                {selected.tenantId && selected.tenantId !== '?' && (
+                  <Link
+                    to={`/manager/tenants/${selected.tenantId}`}
+                    style={{ padding: '10px 20px', border: '1px solid rgba(29,29,27,0.2)', fontSize: '13px', color: '#1d1d1b', textDecoration: 'none', transition: 'all 0.2s' }}
+                    onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.style.color = '#f9fafa'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1d1d1b'; }}
+                  >
+                    View Tenant Profile →
+                  </Link>
+                )}
                 {selected.category === 'Maintenance' && (
                   <Link
                     to="/mentenanta"
