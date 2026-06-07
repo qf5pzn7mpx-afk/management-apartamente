@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import { AuthContext } from './AuthContext';
 
 function RaporteazaProblema() {
+  const { user } = useContext(AuthContext) || {};
   const [titlu, setTitlu] = useState('');
   const [descriere, setDescriere] = useState('');
   const [urgenta, setUrgenta] = useState('Low');
@@ -22,17 +24,30 @@ function RaporteazaProblema() {
     setLoading(true);
 
     try {
-      const payload = {
-        titlu,
-        descriere,
-        status: 'Nouă',
-        chirias_id: 1,
-        apartament_id: 1,
-        urgenta,
-        poza: poza ? poza.name : null,
-      };
-      const { addMaintenance } = await import('./api/mockApi');
-      await addMaintenance(payload);
+      const token = localStorage.getItem('token') || '';
+
+      const formData = new FormData();
+      formData.append('titlu', titlu);
+      formData.append('descriere', descriere);
+      formData.append('status', 'Nouă');
+      formData.append('urgenta', urgenta);
+      formData.append('chirias_id', user?.id || 1);
+      formData.append('apartament_id', 1);
+      if (poza) formData.append('poza', poza);
+
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/mentenanta', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Server error');
+      }
+
       setSucces(true);
       setTimeout(() => navigate('/mentenanta'), 1500);
     } catch (err) {
@@ -51,7 +66,7 @@ function RaporteazaProblema() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 30px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '100px 30px 60px' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '50px' }}>
           <div>
@@ -206,6 +221,13 @@ function RaporteazaProblema() {
               {loading ? 'Submitting...' : 'Submit Request'}
             </button>
           </div>
+        </div>
+
+        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fcfdf5', padding: '20px 24px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '16px' }}>💡</span>
+          <span style={{ fontSize: '13px', color: '#666' }}>
+            For emergencies like flooding or gas leaks, please call your manager directly instead of submitting a request.
+          </span>
         </div>
       </div>
     </div>
