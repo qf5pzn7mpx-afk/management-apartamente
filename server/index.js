@@ -128,6 +128,15 @@ db.exec(`
 `);
 
 
+const checkManager = db.prepare("SELECT * FROM utilizatori WHERE rol = 'manager'").get();
+
+if (!checkManager) {
+  
+  const hash = bcrypt.hashSync("ParolaManager123!", 10); 
+  db.prepare("INSERT INTO utilizatori (email, parola, rol) VALUES (?, ?, ?)").run("manager@eif.ro", hash, "manager");
+  console.log("🔑 Contul unic de manager a fost creat cu succes! (manager@eif.ro)");
+}
+
 
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -334,8 +343,6 @@ app.post('/api/contact', (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 app.get('/api/reviews', (req, res) => {
   try {
