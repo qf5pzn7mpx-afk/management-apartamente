@@ -16,8 +16,8 @@ export default function Hero({ onStart, onDemo }) {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-5xl font-bold mb-8">Gestionare fatture</h1>
-      <p className="text-xl text-gray-500 mb-8">Gestisci le tue fatture con facilitate</p>
+      <h1 className="text-5xl font-bold mb-8">Gestionare facturi</h1>
+      <p className="text-xl text-gray-500 mb-8">Gestionează-ți facturile cu ușurință</p>
       <div className="flex flex-col md:flex-row md:items-center mb-8">
         <div className="md:w-1/2">
           <form className="flex flex-col">
@@ -42,7 +42,7 @@ export default function Hero({ onStart, onDemo }) {
           </button>
         </div>
       </div>
-      <p className="text-center text-gray-500 mb-8">© 2021 GestionareFatture</p>
+      <p className="text-center text-gray-500 mb-8">© 2026 GestionareFacturi</p>
     </div>
   );
 }

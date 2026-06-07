@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 
@@ -10,6 +10,17 @@ function Login() {
   const [parola, setParola] = useState('');
   const [eroare, setEroare] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Detectăm dacă ecranul este de mobil (mai mic de 768px)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,13 +42,9 @@ function Login() {
         return;
       }
 
-     
       const serverRole = String(data.rol || 'chirias').toLowerCase();
-
-     
       login({ id: data.id, role: serverRole, email }, data.token);
 
-    
       if (serverRole === 'manager') {
         navigate('/manager/dashboard');
       } else {
@@ -53,7 +60,20 @@ function Login() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
 
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 50px', background: '#f9fafa', borderBottom: '1px solid rgba(29,29,27,0.08)', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}>
+      {/* Header ajustat automat pentru mobil/desktop */}
+      <header style={{ 
+        display: 'flex', 
+        justify: 'space-between', 
+        alignItems: 'center', 
+        padding: isMobile ? '20px 24px' : '20px 50px', 
+        background: '#f9fafa', 
+        borderBottom: '1px solid rgba(29,29,27,0.08)', 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        zIndex: 1000 
+      }}>
         <Link to="/" style={{ textDecoration: 'none' }}>
           <span style={{ fontFamily: 'Helvetica, sans-serif', fontWeight: 'bold', fontSize: '18px', color: '#1d1d1b' }}>EIF</span>
         </Link>
@@ -62,13 +82,26 @@ function Login() {
         </Link>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '100vh' }}>
+      {/* Aici se schimbă structura: pe desktop '1fr 1fr' (stânga-dreapta), pe mobil '1fr' (sus-jos) */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+        minHeight: '100vh',
+        paddingTop: isMobile ? '60px' : '0px' 
+      }}>
 
-        <div style={{ background: '#1d1d1b', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 80px' }}>
+        {/* Partea Neagră */}
+        <div style={{ 
+          background: '#1d1d1b', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justify: 'center', 
+          padding: isMobile ? '60px 24px' : '120px 80px' 
+        }}>
           <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: 'rgba(249,250,250,0.5)', textTransform: 'uppercase', marginBottom: '24px', display: 'block' }}>
             Welcome Back
           </span>
-          <h1 style={{ fontFamily: 'Forum, serif', fontSize: '64px', fontWeight: 400, color: '#f9fafa', lineHeight: 1.1, textTransform: 'uppercase', margin: '0 0 30px 0' }}>
+          <h1 style={{ fontFamily: 'Forum, serif', fontSize: isMobile ? '42px' : '64px', fontWeight: 400, color: '#f9fafa', lineHeight: 1.1, textTransform: 'uppercase', margin: '0 0 30px 0' }}>
             Sign In<br />To Your<br />Account
           </h1>
           <p style={{ fontSize: '16px', color: 'rgba(249,250,250,0.6)', lineHeight: 1.8, maxWidth: '340px', margin: '0 0 50px 0' }}>
@@ -84,12 +117,19 @@ function Login() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '120px 80px', background: '#f9fafa' }}>
+        {/* Partea Albă (Formularul) */}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justify: 'center', 
+          padding: isMobile ? '60px 24px' : '120px 80px', 
+          background: '#f9fafa' 
+        }}>
           <div>
             <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>
               Secure Login
             </span>
-            <h2 style={{ fontFamily: 'Forum, serif', fontSize: '40px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', margin: '0 0 50px 0' }}>
+            <h2 style={{ fontFamily: 'Forum, serif', fontSize: isMobile ? '32px' : '40px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', margin: '0 0 50px 0' }}>
               Enter Your<br />Credentials
             </h2>
 
@@ -143,6 +183,7 @@ function Login() {
             </p>
           </div>
         </div>
+
       </div>
     </div>
   );

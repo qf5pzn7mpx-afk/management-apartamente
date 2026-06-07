@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 function Register() {
@@ -9,6 +9,17 @@ function Register() {
   const [nume, setNume] = useState('');
   const [mesaj, setMesaj] = useState({ tip: '', text: '' });
   const [loading, setLoading] = useState(false);
+
+  // Detectăm dacă ecranul este de mobil
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +38,6 @@ function Register() {
     setLoading(true);
 
     try {
-      
       const response = await fetch('https://management-apartamente-api.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,7 +63,7 @@ function Register() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f0eb', fontFamily: 'Helvetica, sans-serif', display: 'flex', flexDirection: 'column' }}>
 
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 50px', background: 'transparent', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '20px 24px' : '20px 50px', background: 'transparent', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}>
         <Link to="/" style={{ textDecoration: 'none' }}>
           <span style={{ fontFamily: 'Helvetica, sans-serif', fontWeight: 'bold', fontSize: '18px', color: '#1d1d1b' }}>EIF</span>
         </Link>
@@ -62,10 +72,10 @@ function Register() {
         </Link>
       </header>
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '120px 30px 60px' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '100px 20px 40px' : '120px 30px 60px' }}>
         <div style={{ width: '100%', maxWidth: '580px' }}>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '50px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '30px' : '50px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#e8f4e8', padding: '6px 14px' }}>
               <div style={{ width: '6px', height: '6px', background: '#2d7a2d', borderRadius: '50%' }} />
               <span style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#2d7a2d', textTransform: 'uppercase' }}>
@@ -74,7 +84,7 @@ function Register() {
             </div>
           </div>
 
-          <h2 style={{ fontFamily: 'Forum, serif', fontSize: '48px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', margin: '0 0 50px 0', lineHeight: 1.1 }}>
+          <h2 style={{ fontFamily: 'Forum, serif', fontSize: isMobile ? '36px' : '48px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', margin: '0 0 40px 0', lineHeight: 1.1 }}>
             Create Your<br />Account
           </h2>
 
@@ -84,7 +94,7 @@ function Register() {
             </div>
           )}
 
-          <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+          <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: isMobile ? '24px' : '50px' }}>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Full Name *</label>
@@ -110,7 +120,8 @@ function Register() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+              {/* Aici am modificat grid-ul pentru a se adapta pe mobil */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '20px' : '30px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999' }}>Password *</label>
                   <input
@@ -149,7 +160,8 @@ function Register() {
             </form>
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(29,29,27,0.1)', marginTop: '30px', paddingTop: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Adaptat pentru a nu se lipi textul pe ecrane mici */}
+          <div style={{ borderTop: '1px solid rgba(29,29,27,0.1)', marginTop: '30px', paddingTop: '30px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '10px' }}>
             <span style={{ fontSize: '14px', color: '#999' }}>Already have an account?</span>
             <Link to="/login" style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '1px' }}>
               Sign in here &rarr;
