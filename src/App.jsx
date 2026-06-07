@@ -32,11 +32,9 @@ import ChiriasMaintenance from './chirias/Maintenance';
 import TenantDocuments from './TenantDocuments';
 
 function App() {
-  const [mesajServer, setMesajServer] = useState('Loading...');
   const [chiriasi, setChiriasi] = useState([]);
 
   useEffect(() => {
-   
     const fetchTenants = async () => {
       try {
         const token = localStorage.getItem('token') || '';
@@ -55,12 +53,6 @@ function App() {
       }
     };
     fetchTenants();
-
-   
-    fetch('https://management-apartamente-api.onrender.com/api/test')
-      .then((res) => res.json())
-      .then((data) => setMesajServer(data.message)) 
-      .catch(() => setMesajServer('Error: Backend server is offline.'));
   }, []);
 
   const adaugaChirias = (nou) => {
@@ -69,25 +61,6 @@ function App() {
 
   return (
     <div className="App">
-      <div
-        style={{
-          padding: '10px',
-          backgroundColor: '#e0f7fa',
-          textAlign: 'center',
-          marginBottom: '20px',
-          borderRadius: '8px',
-        }}
-      >
-        <strong>Server Status: </strong>
-        <span
-          style={{
-            color: mesajServer?.includes('Error') ? 'red' : 'blue',
-          }}
-        >
-          {mesajServer}
-        </span>
-      </div>
-
       <AuthProvider>
         <BrowserRouter>
           <Routes>
