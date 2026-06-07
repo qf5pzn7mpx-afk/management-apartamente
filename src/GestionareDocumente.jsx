@@ -14,12 +14,12 @@ function GestionareDocumente() {
       try {
         const token = localStorage.getItem('token') || '';
         
-        // Luăm documentele
+        
         const docsRes = await fetch('https://management-apartamente-api.onrender.com/api/documente', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // Luăm chiriașii (pentru a le potrivi numele cu ID-ul)
+        
         const tenantsRes = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
           headers: { 'Authorization': `Bearer ${token}` }
         });

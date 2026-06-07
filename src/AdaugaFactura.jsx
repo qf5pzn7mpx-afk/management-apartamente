@@ -15,13 +15,26 @@ function AdaugaFactura() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    import('./api/mockApi').then(({ getTenants }) =>
-      getTenants().then(data => setChiriasi(Array.isArray(data) ? data : []))
-    ).catch(() => setEroare('Cannot load tenants list.'));
+    const fetchTenants = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setChiriasi(Array.isArray(data) ? data : []);
+        } else {
+          setEroare('Cannot load tenants list.');
+        }
+      } catch (err) {
+        setEroare('Cannot connect to server: ' + err.message);
+      }
+    };
+    fetchTenants();
   }, []);
 
   const handleSave = async () => {
-    
     const missingFields = [];
     if (!chiriasId) missingFields.push('Tenant');
     if (!amount) missingFields.push('Amount');
@@ -29,7 +42,6 @@ function AdaugaFactura() {
     if (!dataEmiterii) missingFields.push('Issue Date');
     if (!dataScadentei) missingFields.push('Due Date');
 
-    
     if (missingFields.length > 0) {
       setEroare(`Please fill in all required fields! Missing: ${missingFields.join(', ')}`);
       return;
@@ -38,18 +50,22 @@ function AdaugaFactura() {
     setLoading(true);
     setEroare('');
     try {
+      const token = localStorage.getItem('token') || '';
       const payload = { 
         chirias_id: parseInt(chiriasId), 
         suma: parseFloat(amount), 
         tip: tip, 
         data_emiterii: dataEmiterii, 
         data_scadentei: dataScadentei, 
-        status: 'Unpaid' 
+        status: 'Neplătită' 
       };
 
       const response = await fetch('https://management-apartamente-api.onrender.com/api/facturi', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(payload),
       });
 
@@ -118,7 +134,7 @@ function AdaugaFactura() {
               <option value="">Select a tenant...</option>
               {chiriasi.map(ch => (
                 <option key={ch.id} value={ch.id}>
-                  {ch.nume} — Apt. {ch.apartament_id || '–'}
+                  {ch.nume} — Apt. {ch.apartament_numar || ch.apartament_id || '–'}
                 </option>
               ))}
             </select>
@@ -131,7 +147,7 @@ function AdaugaFactura() {
                 </div>
                 <div>
                   <div style={{ fontSize: '11px', color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>Apartment</div>
-                  <div style={{ fontSize: '14px', color: '#1d1d1b', fontWeight: 500 }}>{chirias.apartament_id || '—'}</div>
+                  <div style={{ fontSize: '14px', color: '#1d1d1b', fontWeight: 500 }}>{chirias.apartament_numar || chirias.apartament_id || '—'}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '11px', color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>Email</div>
@@ -217,7 +233,7 @@ function AdaugaFactura() {
                 </div>
                 <div>
                   <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>STATUS</div>
-                  <div style={{ fontSize: '13px', padding: '3px 12px', background: '#fff0f0', color: '#cc0000', display: 'inline-block' }}>Unpaid</div>
+                  <div style={{ fontSize: '13px', padding: '3px 12px', background: '#fff0f0', color: '#cc0000', display: 'inline-block' }}>Neplătită</div>
                 </div>
               </div>
             </div>

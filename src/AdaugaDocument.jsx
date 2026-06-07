@@ -16,9 +16,24 @@ function AdaugaDocument() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    import('./api/mockApi').then(({ getTenants }) => getTenants().then((data) => {
-      if (Array.isArray(data)) setChiriasi(data);
-    })).catch(() => setEroare('Nu pot încărca lista chiriașilor'));
+    const fetchTenants = async () => {
+      try {
+        const token = localStorage.getItem('token') || '';
+        const response = await fetch('https://management-apartamente-api.onrender.com/api/chiriasi', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setChiriasi(Array.isArray(data) ? data : []);
+        } else {
+          setEroare('Nu pot încărca lista chiriașilor de pe server.');
+        }
+      } catch (err) {
+        setEroare('Eroare de conexiune la server.');
+        console.error(err);
+      }
+    };
+    fetchTenants();
   }, []);
 
   const handleSave = async () => {
@@ -28,10 +43,29 @@ function AdaugaDocument() {
     }
     setLoading(true);
     setEroare('');
+    
     try {
-      const payload = { nume_fisier: numeDocument, tip: tipDocument, chirias_id: chiriasId, fisier: fisier.name };
-      const { addDocument } = await import('./api/mockApi');
-      await addDocument(payload);
+      const token = localStorage.getItem('token') || '';
+      
+      const formData = new FormData();
+      formData.append('nume_fisier', numeDocument);
+      formData.append('tip', tipDocument);
+      formData.append('chirias_id', chiriasId);
+      formData.append('fisier', fisier); 
+
+      const response = await fetch('https://management-apartamente-api.onrender.com/api/documente', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Eroare la salvarea documentului.');
+      }
+
       setSucces(true);
       setTimeout(() => navigate('/documente'), 1500);
     } catch (err) {
@@ -98,7 +132,7 @@ function AdaugaDocument() {
             >
               <option value="">Select a tenant</option>
               {chiriasi.map(c => (
-                <option key={c.id} value={c.id}>{c.nume}</option>
+                <option key={c.id} value={c.id}>{c.nume || c.name}</option>
               ))}
             </select>
           </div>

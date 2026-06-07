@@ -19,7 +19,7 @@ export default function ChiriasDashboard() {
         });
         if (response.ok) {
           const data = await response.json();
-          // Păstrăm doar facturile acestui chiriaș
+          
           const myInvoices = (Array.isArray(data) ? data : []).filter(i => i.chirias_id?.toString() === user.id?.toString());
           setInvoices(myInvoices);
         }
