@@ -10,7 +10,7 @@ function Register() {
   const [mesaj, setMesaj] = useState({ tip: '', text: '' });
   const [loading, setLoading] = useState(false);
 
-  // Detectăm dacă ecranul este de mobil
+ 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {

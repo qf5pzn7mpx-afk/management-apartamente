@@ -49,7 +49,7 @@ export default function TenantDocuments() {
   const [uploaded, setUploaded] = useState(false);
   const [loadingDocs, setLoadingDocs] = useState(true);
 
-  // Detectăm dacă e ecran de mobil
+  
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {

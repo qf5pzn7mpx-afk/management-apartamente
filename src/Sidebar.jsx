@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 export default function Sidebar({ role = 'manager', onFilter }) {
   const [filter, setFilter] = useState('');
-  const [isOpen, setIsOpen] = useState(false); // Starea pentru meniul pe mobil
+  const [isOpen, setIsOpen] = useState(false); 
 
   const handleFilterChange = (event) => {
     setFilter(event.target.value);
@@ -12,7 +12,7 @@ export default function Sidebar({ role = 'manager', onFilter }) {
     }
   };
 
-  // Când un link este apăsat pe mobil, închidem meniul
+  
   const handleLinkClick = () => {
     setIsOpen(false);
   };
@@ -114,7 +114,7 @@ export default function Sidebar({ role = 'manager', onFilter }) {
               <NavLink
                 key={item.to}
                 to={item.to}
-                onClick={handleLinkClick} // Închide meniul la click pe mobil
+                onClick={handleLinkClick} 
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                     isActive

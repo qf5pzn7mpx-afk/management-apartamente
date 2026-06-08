@@ -13,7 +13,7 @@ function RaporteazaProblema() {
   const [succes, setSucces] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
-  // Detectăm dacă ecranul este de mobil
+  
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {

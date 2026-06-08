@@ -18,7 +18,7 @@ export default function ChiriasDocuments() {
         });
         if (response.ok) {
           const data = await response.json();
-          // Filtrăm ca să vadă doar documentele lui
+          
           const myDocs = (Array.isArray(data) ? data : []).filter(d => d.chirias_id?.toString() === user.id?.toString());
           setDocs(myDocs);
         }

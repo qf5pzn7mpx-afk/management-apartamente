@@ -12,7 +12,7 @@ export default function ManagerDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Detectăm dacă ecranul este de mobil
+  
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {

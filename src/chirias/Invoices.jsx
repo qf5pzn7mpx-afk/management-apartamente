@@ -25,7 +25,7 @@ export default function ChiriasInvoices() {
         });
         if (response.ok) {
           const data = await response.json();
-          // Filtrăm ca să vadă doar facturile lui
+         
           const myInvoices = (Array.isArray(data) ? data : []).filter(i => i.chirias_id?.toString() === user.id?.toString());
           setInvoices(myInvoices);
         }
