@@ -12,9 +12,21 @@ function WhyChooseUsSection() {
   const cardsRef = useRef([]);
 
   const cardsData = [
-    { id: '01', title: 'Excellent Property Maintenance', text: 'Add paragraph text. Click "Edit Text" to update the font, size and more. To change and reuse text themes, go to Site Styles.' },
-    { id: '02', title: 'Premium Location', text: 'Strategic positioning in a premium residential area, offering easy access to the best parts of the city.' },
-    { id: '03', title: 'Modern Facilities', text: 'Top-tier facilities and smart property management solutions offered to all our residents.' }
+    {
+      id: '01',
+      title: 'Excellent Property Maintenance',
+      text: 'We handle all repairs and maintenance requests promptly. From minor fixes to major renovations, our team ensures your property stays in perfect condition year-round.'
+    },
+    {
+      id: '02',
+      title: 'Premium Location',
+      text: 'Our properties are strategically located in the heart of the city, offering easy access to public transport, schools, shopping centers and business districts.'
+    },
+    {
+      id: '03',
+      title: 'Modern Facilities',
+      text: 'Enjoy state-of-the-art amenities including a swimming pool, fitness center, 24/7 security and smart home features — all designed for a premium living experience.'
+    }
   ];
 
   useGSAP(() => {
@@ -170,51 +182,12 @@ function PropertiesSection() {
   );
 }
 
-function OfferSection() {
-  return (
-    <section className="offer-section">
-      <div className="offer-banner">
-        <h2 className="offer-title">First Month is On Us</h2>
-        <p className="offer-subtitle">Unlock extra value, enjoy complimentary services and upgrades</p>
-        <a href="#contact" className="offer-link">Start Your Free Trial Today</a>
-      </div>
-      <div className="offer-cards">
-        <div className="offer-card">
-          <svg className="offer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <rect x="2" y="3" width="5" height="18" />
-            <rect x="9" y="3" width="5" height="18" />
-            <rect x="16" y="3" width="6" height="18" />
-          </svg>
-          <p className="offer-card-text">Risk-free trial</p>
-        </div>
-        <div className="offer-card">
-          <svg className="offer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="6" />
-            <circle cx="12" cy="12" r="2" />
-          </svg>
-          <p className="offer-card-text">We'll find your perfect tenant</p>
-        </div>
-        <div className="offer-card">
-          <svg className="offer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <line x1="12" y1="2" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-            <line x1="5" y1="5" x2="19" y2="19" />
-            <line x1="19" y1="5" x2="5" y2="19" />
-          </svg>
-          <p className="offer-card-text">No upfront costs</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function TestimonialsSection() {
   const [current, setCurrent] = React.useState(0);
   const [showForm, setShowForm] = React.useState(false);
   const [name, setName] = React.useState('');
   const [message, setMessage] = React.useState('');
-  const [testimonials, setTestimonials] = React.useState([]); 
+  const [testimonials, setTestimonials] = React.useState([]);
 
   React.useEffect(() => {
     fetch('https://management-apartamente-api.onrender.com/api/reviews')
@@ -229,36 +202,32 @@ function TestimonialsSection() {
           ]);
         }
       })
-      .catch(err => console.error("Error loading reviews:", err));
+      .catch(() => {
+        setTestimonials([
+          { quote: "Working with this team has been an absolute pleasure. Our property has never been better managed, and our tenants are always happy.", author: "Ramsey Amir, NY" },
+          { quote: "They handled everything from tenant placement to maintenance without us lifting a finger. Truly a stress-free experience.", author: "Jessica Moore, CA" }
+        ]);
+      });
   }, []);
 
   const handleSubmit = async () => {
     if (!name.trim() || !message.trim()) return;
-    
     const newTestimonial = { quote: message, author: name };
-
     try {
       const response = await fetch('https://management-apartamente-api.onrender.com/api/reviews', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTestimonial)
       });
-
       if (response.ok) {
         setTestimonials(prev => [...prev, newTestimonial]);
-        setCurrent(testimonials.length); 
+        setCurrent(testimonials.length);
         setName('');
         setMessage('');
         setShowForm(false);
-        alert("Review saved successfully!");
-      } else {
-        alert("An error occurred while saving the review.");
       }
     } catch (error) {
       console.error("Connection error:", error);
-      alert("Server connection error.");
     }
   };
 
@@ -309,8 +278,6 @@ function TestimonialsSection() {
 
 function ContactSection() {
   const titleRef = useRef(null);
-  
-  // Starea internă pentru prinderea datelor din input-uri
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
@@ -332,19 +299,13 @@ function ContactSection() {
     );
   }, { scope: titleRef });
 
-  const handleSubmit = (e) => {
-    if (e) e.preventDefault();
-    
-    // Validarea câmpurilor obligatorii
+  const handleSubmit = () => {
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !message.trim()) {
       setStatus({ type: 'error', text: 'Please fill in all required fields (*).' });
       return;
     }
-
     setLoading(true);
     setStatus({ type: '', text: '' });
-
-    // Simulăm trimiterea cu succes a mesajului
     setTimeout(() => {
       setStatus({ type: 'success', text: 'Message sent successfully! We will contact you soon.' });
       setFirstName('');
@@ -364,73 +325,43 @@ function ContactSection() {
       </div>
       <div className="contact-form-box">
         <h3 className="contact-form-title">Don't Wait, Reach Out Now</h3>
-        
-        {/* Mesaje de succes sau eroare vizibile */}
         {status.text && (
-          <div style={{ 
-            padding: '14px 20px', 
-            marginBottom: '25px', 
+          <div style={{
+            padding: '14px 20px',
+            marginBottom: '25px',
             fontSize: '14px',
             backgroundColor: status.type === 'error' ? '#fff0f0' : '#f0fff0',
             border: `1px solid ${status.type === 'error' ? '#ffcccc' : '#ccffcc'}`,
             color: status.type === 'error' ? '#cc0000' : '#007700',
-            textAlign: 'left'
           }}>
             {status.text}
           </div>
         )}
-
         <div className="contact-form-grid">
           <div className="contact-field">
             <label className="contact-label">First name *</label>
-            <input 
-              className="contact-input" 
-              type="text" 
-              value={firstName} 
-              onChange={e => setFirstName(e.target.value)} 
-            />
+            <input className="contact-input" type="text" value={firstName} onChange={e => setFirstName(e.target.value)} />
           </div>
           <div className="contact-field">
             <label className="contact-label">Last name *</label>
-            <input 
-              className="contact-input" 
-              type="text" 
-              value={lastName} 
-              onChange={e => setLastName(e.target.value)} 
-            />
+            <input className="contact-input" type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
           </div>
           <div className="contact-field">
             <label className="contact-label">Email *</label>
-            <input 
-              className="contact-input" 
-              type="email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)} 
-            />
+            <input className="contact-input" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           </div>
           <div className="contact-field">
             <label className="contact-label">Phone</label>
-            <input 
-              className="contact-input" 
-              type="tel" 
-              value={phone} 
-              onChange={e => setPhone(e.target.value)} 
-            />
+            <input className="contact-input" type="tel" value={phone} onChange={e => setPhone(e.target.value)} />
           </div>
           <div className="contact-field contact-field-full">
             <label className="contact-label">Message *</label>
-            <textarea 
-              className="contact-input contact-textarea" 
-              rows={4} 
-              value={message} 
-              onChange={e => setMessage(e.target.value)} 
-            />
+            <textarea className="contact-input contact-textarea" rows={4} value={message} onChange={e => setMessage(e.target.value)} />
           </div>
         </div>
-        
-        <button 
+        <button
           type="button"
-          className="contact-submit" 
+          className="contact-submit"
           onClick={handleSubmit}
           disabled={loading}
           style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
@@ -603,7 +534,6 @@ export default function Home() {
         </div>
 
         <PropertiesSection />
-        <OfferSection />
 
         <div id="testimonials">
           <TestimonialsSection />

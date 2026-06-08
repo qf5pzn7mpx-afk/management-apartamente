@@ -54,9 +54,38 @@ export default function SendMessage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
+    <div className="ch-msg-root" style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '700px', margin: '0 auto', padding: '100px 30px 60px' }}>
+      <div className="ch-msg-container" style={{ maxWidth: '700px', margin: '0 auto', padding: '100px 30px 60px' }}>
+
+        {/* Scoped responsive styles - injected at start of return */}
+        <style>{`
+          .ch-msg-root { }
+          .ch-msg-container { }
+          .ch-msg-categories { }
+          .ch-msg-cat-btn { }
+          .ch-msg-form { }
+          .ch-msg-info { }
+          .ch-msg-actions { }
+
+          @media (max-width: 767px) {
+            .ch-msg-container { padding: 60px 16px 40px !important; }
+            .ch-msg-categories { grid-template-columns: 1fr !important; gap: 8px !important; }
+            .ch-msg-cat-btn { text-align: left !important; }
+            .ch-msg-form { padding: 20px !important; }
+            input[data-label="Subject"], textarea[data-label="Message"] { width: 100% !important; }
+            .ch-msg-info { padding: 12px !important; }
+            .ch-msg-actions { display: block !important; }
+            .ch-msg-actions button { width: 100% !important; display: block !important; margin-bottom: 10px !important; }
+          }
+
+          @media (min-width: 768px) and (max-width: 1024px) {
+            .ch-msg-container { padding: 80px 20px 48px !important; }
+            .ch-msg-categories { grid-template-columns: repeat(2,1fr) !important; }
+            .ch-msg-actions { display:flex !important; justify-content:space-between !important; }
+            .ch-msg-actions button { min-width:140px !important; }
+          }
+        `}</style>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '50px' }}>
           <div>
@@ -102,7 +131,7 @@ export default function SendMessage() {
             </div>
           </div>
         ) : (
-          <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+          <div className="ch-msg-form" style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
 
             {eroare && (
               <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: '14px 20px', marginBottom: '30px', color: '#cc0000', fontSize: '14px' }}>
@@ -112,10 +141,11 @@ export default function SendMessage() {
 
             <div style={{ marginBottom: '36px' }}>
               <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Category *</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+              <div className="ch-msg-categories" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                 {categorii.map(cat => (
                   <button
                     key={cat.value}
+                    className="ch-msg-cat-btn"
                     onClick={() => setCategorie(cat.value)}
                     style={{ padding: '16px 10px', border: `1px solid ${categorie === cat.value ? '#1d1d1b' : 'rgba(29,29,27,0.15)'}`, background: categorie === cat.value ? '#1d1d1b' : '#fff', cursor: 'pointer', textAlign: 'center', fontFamily: 'Helvetica, sans-serif', transition: 'all 0.2s' }}
                   >
@@ -134,6 +164,7 @@ export default function SendMessage() {
                 value={subiect}
                 onChange={e => setSubiect(e.target.value)}
                 placeholder="Ex: Question about my invoice"
+                data-label="Subject"
                 style={{ width: '100%', padding: '12px 0', border: 'none', borderBottom: '1px solid rgba(29,29,27,0.2)', background: 'transparent', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', boxSizing: 'border-box' }}
               />
             </div>
@@ -145,6 +176,7 @@ export default function SendMessage() {
                 onChange={e => setMesaj(e.target.value)}
                 rows={6}
                 placeholder="Write your message here..."
+                data-label="Message"
                 style={{ width: '100%', padding: '16px', border: '1px solid rgba(29,29,27,0.15)', background: '#fcfdf5', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }}
               />
               <div style={{ fontSize: '12px', color: '#999', marginTop: '6px', textAlign: 'right' }}>
@@ -152,14 +184,14 @@ export default function SendMessage() {
               </div>
             </div>
 
-            <div style={{ background: '#fcfdf5', border: '1px solid rgba(29,29,27,0.08)', padding: '16px 20px', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="ch-msg-info" style={{ background: '#fcfdf5', border: '1px solid rgba(29,29,27,0.08)', padding: '16px 20px', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '16px' }}>👤</span>
               <span style={{ fontSize: '13px', color: '#666' }}>
                 Sending as <strong style={{ color: '#1d1d1b' }}>{user?.name || user?.email || 'Tenant'}</strong>
               </span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '30px' }}>
+            <div className="ch-msg-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '30px' }}>
               <button
                 onClick={() => navigate('/chirias/dashboard')}
                 style={{ fontSize: '14px', color: '#999', background: 'none', border: 'none', cursor: 'pointer', borderBottom: '1px solid #ccc', paddingBottom: '2px', fontFamily: 'Helvetica, sans-serif' }}
