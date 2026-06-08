@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import { AuthContext } from './AuthContext';
@@ -12,6 +12,17 @@ function RaporteazaProblema() {
   const [loading, setLoading] = useState(false);
   const [succes, setSucces] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+
+  // Detectăm dacă ecranul este de mobil
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const navigate = useNavigate();
 
@@ -66,12 +77,12 @@ function RaporteazaProblema() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '100px 30px 60px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '80px 20px 40px' : '100px 30px 60px' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '50px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: isMobile ? '30px' : '50px' }}>
           <div>
             <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>03 — Tenant Platform</span>
-            <h1 style={{ fontFamily: 'Forum, serif', fontSize: '52px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: 0 }}>
+            <h1 style={{ fontFamily: 'Forum, serif', fontSize: isMobile ? '36px' : '52px', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: 0 }}>
               Report<br />An Issue
             </h1>
           </div>
@@ -89,7 +100,7 @@ function RaporteazaProblema() {
           </div>
         )}
 
-        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: isMobile ? '24px' : '50px' }}>
 
           <div style={{ marginBottom: '36px' }}>
             <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Issue Title *</label>
@@ -109,13 +120,14 @@ function RaporteazaProblema() {
               onChange={e => setDescriere(e.target.value)}
               rows={5}
               placeholder="Describe the issue in detail so the manager can address it quickly..."
-              style={{ width: '100%', padding: '16px', border: '1px solid rgba(29,29,27,0.15)', background: '#fcfdf5', fontSize: '15px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }}
+              style={{ width: '100%', padding: '16px', border: '1px solid rgba(29,29,27,0.15)', background: '#fcfdf5', fontSize: '16px', color: '#1d1d1b', outline: 'none', fontFamily: 'Helvetica, sans-serif', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }}
             />
           </div>
 
           <div style={{ marginBottom: '36px' }}>
             <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Priority Level *</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+            {/* Adaptăm grid-ul pentru a stivui elementele pe mobil */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px' }}>
               {urgentaOptions.map(opt => (
                 <button
                   key={opt.value}
@@ -137,7 +149,7 @@ function RaporteazaProblema() {
             </div>
           </div>
 
-          <div style={{ marginBottom: '50px' }}>
+          <div style={{ marginBottom: isMobile ? '30px' : '50px' }}>
             <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Photo (optional)</label>
             <div
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -165,7 +177,7 @@ function RaporteazaProblema() {
                 </div>
               ) : (
                 <>
-                  <p style={{ fontSize: '14px', color: '#999', margin: '0 0 6px 0' }}>Drag & drop or click to upload a photo</p>
+                  <p style={{ fontSize: '14px', color: '#999', margin: '0 0 6px 0' }}>Drag & drop or click to upload</p>
                   <p style={{ fontSize: '12px', color: '#bbb', margin: 0 }}>JPG, PNG up to 10MB</p>
                 </>
               )}
@@ -185,7 +197,7 @@ function RaporteazaProblema() {
                   style={{ height: '120px', width: 'auto', objectFit: 'cover', border: '1px solid rgba(29,29,27,0.12)' }}
                 />
                 <button
-                  onClick={() => setPoza(null)}
+                  onClick={e => { e.stopPropagation(); setPoza(null); }}
                   style={{ position: 'absolute', top: '6px', right: '6px', background: '#1d1d1b', color: '#f9fafa', border: 'none', width: '24px', height: '24px', cursor: 'pointer', fontSize: '12px' }}
                 >
                   ✕
@@ -194,10 +206,11 @@ function RaporteazaProblema() {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(29,29,27,0.1)', paddingTop: '30px' }}>
+          {/* Adaptăm flex-direction pentru mobil: butoanele se vor așeza pe coloană */}
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(29,29,27,0.1)', paddingTop: '30px', gap: isMobile ? '20px' : '0' }}>
             <Link
               to="/mentenanta"
-              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px' }}
+              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px', order: isMobile ? 2 : 1 }}
             >
               Cancel
             </Link>
@@ -214,6 +227,8 @@ function RaporteazaProblema() {
                 fontFamily: 'Helvetica, sans-serif',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',
+                width: isMobile ? '100%' : 'auto',
+                order: isMobile ? 1 : 2
               }}
               onMouseOver={e => { if (!loading) e.currentTarget.style.opacity = '0.8'; }}
               onMouseOut={e => e.currentTarget.style.opacity = '1'}
@@ -223,9 +238,9 @@ function RaporteazaProblema() {
           </div>
         </div>
 
-        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fcfdf5', padding: '20px 24px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '16px' }}>💡</span>
-          <span style={{ fontSize: '13px', color: '#666' }}>
+        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fcfdf5', padding: '20px 24px', marginTop: '15px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          <span style={{ fontSize: '16px', marginTop: '2px' }}>💡</span>
+          <span style={{ fontSize: '13px', color: '#666', lineHeight: 1.5 }}>
             For emergencies like flooding or gas leaks, please call your manager directly instead of submitting a request.
           </span>
         </div>

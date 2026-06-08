@@ -12,6 +12,15 @@ export default function ManagerDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Detectăm dacă ecranul este de mobil
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -64,59 +73,63 @@ export default function ManagerDashboard() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '100px 30px 60px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '80px 16px 40px' : '100px 30px 60px' }}>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
 
           <div style={{ marginBottom: '16px' }}>
             <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase' }}>Manager Panel</span>
           </div>
-          <h1 style={{ fontFamily: 'Forum, serif', fontSize: '64px', fontWeight: 400, color: '#1d1d1b', lineHeight: 1.1, textTransform: 'uppercase', margin: '0 0 60px 0' }}>
+          <h1 style={{ fontFamily: 'Forum, serif', fontSize: isMobile ? '42px' : '64px', fontWeight: 400, color: '#1d1d1b', lineHeight: 1.1, textTransform: 'uppercase', margin: isMobile ? '0 0 30px 0' : '0 0 60px 0' }}>
             Manager<br />Dashboard
           </h1>
 
           {(cereriUrgente.length > 0 || facturiNeplatite.length > 0) && (
-            <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: '16px 24px', marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '18px' }}>⚠️</span>
-              <div>
-                {cereriUrgente.length > 0 && (
-                  <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#cc0000' }}>
-                    <strong>{cereriUrgente.length}</strong> urgent maintenance request{cereriUrgente.length > 1 ? 's' : ''} need attention
-                  </p>
-                )}
-                {facturiNeplatite.length > 0 && (
-                  <p style={{ margin: 0, fontSize: '14px', color: '#cc0000' }}>
-                    <strong>{facturiNeplatite.length}</strong> unpaid invoice{facturiNeplatite.length > 1 ? 's' : ''} pending
-                  </p>
-                )}
+            <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', padding: isMobile ? '16px' : '16px 24px', marginBottom: isMobile ? '20px' : '40px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <span style={{ fontSize: '18px' }}>⚠️</span>
+                <div>
+                  {cereriUrgente.length > 0 && (
+                    <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#cc0000' }}>
+                      <strong>{cereriUrgente.length}</strong> urgent maintenance request{cereriUrgente.length > 1 ? 's' : ''} need attention
+                    </p>
+                  )}
+                  {facturiNeplatite.length > 0 && (
+                    <p style={{ margin: 0, fontSize: '14px', color: '#cc0000' }}>
+                      <strong>{facturiNeplatite.length}</strong> unpaid invoice{facturiNeplatite.length > 1 ? 's' : ''} pending
+                    </p>
+                  )}
+                </div>
               </div>
-              <Link to="/facturi" style={{ marginLeft: 'auto', fontSize: '13px', color: '#cc0000', textDecoration: 'none', borderBottom: '1px solid #cc0000', paddingBottom: '1px', whiteSpace: 'nowrap' }}>
+              <Link to="/facturi" style={{ marginLeft: isMobile ? '0' : 'auto', marginTop: isMobile ? '8px' : '0', fontSize: '13px', color: '#cc0000', textDecoration: 'none', borderBottom: '1px solid #cc0000', paddingBottom: '1px', whiteSpace: 'nowrap' }}>
                 View all →
               </Link>
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2px', marginBottom: '2px' }}>
+          {/* Grid-ul pentru statistici - se transformă în 2x2 pe telefon */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '2px', marginBottom: '2px' }}>
             {stats.map(stat => (
               <Link key={stat.label} to={stat.link} style={{ textDecoration: 'none' }}>
                 <div
-                  style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '30px', background: '#fff', transition: 'all 0.2s', cursor: 'pointer', height: '100%', boxSizing: 'border-box' }}
+                  style={{ border: '1px solid rgba(29,29,27,0.12)', padding: isMobile ? '20px' : '30px', background: '#fff', transition: 'all 0.2s', cursor: 'pointer', height: '100%', boxSizing: 'border-box' }}
                   onMouseOver={e => { e.currentTarget.style.background = '#1d1d1b'; e.currentTarget.querySelector('.stat-value').style.color = '#f9fafa'; e.currentTarget.querySelector('.stat-label').style.color = 'rgba(249,250,250,0.5)'; e.currentTarget.querySelector('.stat-sub').style.color = 'rgba(249,250,250,0.4)'; }}
                   onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.querySelector('.stat-value').style.color = '#1d1d1b'; e.currentTarget.querySelector('.stat-label').style.color = '#999'; e.currentTarget.querySelector('.stat-sub').style.color = '#999'; }}
                 >
                   <div className="stat-label" style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', marginBottom: '16px' }}>{stat.label}</div>
-                  <div className="stat-value" style={{ fontFamily: 'Forum, serif', fontSize: '36px', color: '#1d1d1b', lineHeight: 1, marginBottom: '10px', transition: 'color 0.2s' }}>{stat.value}</div>
+                  <div className="stat-value" style={{ fontFamily: 'Forum, serif', fontSize: isMobile ? '28px' : '36px', color: '#1d1d1b', lineHeight: 1, marginBottom: '10px', transition: 'color 0.2s' }}>{stat.value}</div>
                   <div className="stat-sub" style={{ fontSize: '13px', color: '#999', transition: 'color 0.2s' }}>{stat.sub}</div>
                 </div>
               </Link>
             ))}
           </div>
 
-          <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '30px', background: '#fcfdf5', marginBottom: '2px' }}>
+          <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: isMobile ? '20px' : '30px', background: '#fcfdf5', marginBottom: '2px' }}>
             <div style={{ marginBottom: '20px' }}>
               <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>Quick Actions</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+            {/* Grid-ul pentru quick actions - 2x2 pe telefon */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '12px' }}>
               {quickActions.map(action => (
                 <button
                   key={action.label}
@@ -133,14 +146,20 @@ export default function ManagerDashboard() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', marginBottom: '2px' }}>
-            <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '40px', background: '#fff' }}>
+          {/* Grid-ul pentru Chart și Notificări - 1 coloană pe telefon */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '2px', marginBottom: '2px' }}>
+            <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: isMobile ? '20px' : '40px', background: '#fff' }}>
               <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Revenue Analysis</span>
               <h3 style={{ fontFamily: 'Forum, serif', fontSize: '24px', fontWeight: 400, color: '#1d1d1b', margin: '0 0 30px 0' }}>Monthly Overview</h3>
-              <RevenueChart months={6} />
+              {/* Dacă graficul face figuri pe lățime, de obicei e din interiorul componentei RevenueChart. Dacă folosești Recharts, pune width="100%" */}
+              <div style={{ overflowX: 'auto', paddingBottom: '10px' }}>
+                <div style={{ minWidth: isMobile ? '400px' : 'auto' }}>
+                   <RevenueChart months={6} />
+                </div>
+              </div>
             </div>
 
-            <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '40px', background: '#fff' }}>
+            <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: isMobile ? '20px' : '40px', background: '#fff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
                 <div>
                   <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Urgent</span>
@@ -179,7 +198,7 @@ export default function ManagerDashboard() {
             </div>
           </div>
 
-          <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '40px', background: '#fff' }}>
+          <div style={{ border: '1px solid rgba(29,29,27,0.12)', padding: isMobile ? '20px' : '40px', background: '#fff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
               <div>
                 <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Tenants</span>
@@ -190,32 +209,35 @@ export default function ManagerDashboard() {
               </Link>
             </div>
 
-            <div style={{ border: '1px solid rgba(29,29,27,0.12)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr', padding: '12px 20px', background: '#fcfdf5', borderBottom: '1px solid rgba(29,29,27,0.08)' }}>
-                {['NAME', 'APARTMENT', 'EMAIL', 'PHONE'].map(col => (
-                  <span key={col} style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', textTransform: 'uppercase' }}>{col}</span>
-                ))}
+            {/* Aici am pus un container cu overflowX pentru tabel ca să facem scroll orizontal pe telefon */}
+            <div style={{ border: '1px solid rgba(29,29,27,0.12)', overflowX: 'auto' }}>
+              <div style={{ minWidth: '600px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr', padding: '12px 20px', background: '#fcfdf5', borderBottom: '1px solid rgba(29,29,27,0.08)' }}>
+                  {['NAME', 'APARTMENT', 'EMAIL', 'PHONE'].map(col => (
+                    <span key={col} style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', textTransform: 'uppercase' }}>{col}</span>
+                  ))}
+                </div>
+                {loading ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontSize: '14px' }}>Loading...</div>
+                ) : tenants.length === 0 ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontSize: '14px' }}>No tenants found.</div>
+                ) : (
+                  tenants.slice(0, 6).map((t, i) => (
+                    <div
+                      key={t.id}
+                      style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr', padding: '16px 20px', borderBottom: i < Math.min(tenants.length, 6) - 1 ? '1px solid rgba(29,29,27,0.06)' : 'none', alignItems: 'center', transition: 'background 0.15s', cursor: 'pointer' }}
+                      onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                      onClick={() => navigate(`/manager/tenants/${t.id}`)}
+                    >
+                      <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{t.nume || t.name || '—'}</span>
+                      <span style={{ fontSize: '14px', color: '#555' }}>{t.apartament_id || t.apartament_numar || '—'}</span>
+                      <span style={{ fontSize: '14px', color: '#555' }}>{t.email || '—'}</span>
+                      <span style={{ fontSize: '14px', color: '#555' }}>{t.telefon || '—'}</span>
+                    </div>
+                  ))
+                )}
               </div>
-              {loading ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontSize: '14px' }}>Loading...</div>
-              ) : tenants.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontSize: '14px' }}>No tenants found.</div>
-              ) : (
-                tenants.slice(0, 6).map((t, i) => (
-                  <div
-                    key={t.id}
-                    style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr', padding: '16px 20px', borderBottom: i < Math.min(tenants.length, 6) - 1 ? '1px solid rgba(29,29,27,0.06)' : 'none', alignItems: 'center', transition: 'background 0.15s', cursor: 'pointer' }}
-                    onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
-                    onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-                    onClick={() => navigate(`/manager/tenants/${t.id}`)}
-                  >
-                    <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 500 }}>{t.nume || t.name || '—'}</span>
-                    <span style={{ fontSize: '14px', color: '#555' }}>{t.apartament_id || t.apartament_numar || '—'}</span>
-                    <span style={{ fontSize: '14px', color: '#555' }}>{t.email || '—'}</span>
-                    <span style={{ fontSize: '14px', color: '#555' }}>{t.telefon || '—'}</span>
-                  </div>
-                ))
-              )}
             </div>
 
             <div style={{ marginTop: '16px', textAlign: 'right' }}>
