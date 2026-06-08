@@ -66,9 +66,39 @@ export default function ChiriasMaintenance() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
+    <div className="ch-maint-root" style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '100px 30px 60px' }}>
+      <div className="ch-maint-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '100px 30px 60px' }}>
+
+        {/* Scoped responsive styles - injected at start of return */}
+        <style>{`
+          .ch-maint-root { }
+          .ch-maint-container { }
+          .ch-maint-form { }
+          .ch-maint-priority { }
+          .ch-maint-priority-btn { }
+          .ch-maint-dropzone { }
+          .ch-maint-actions { }
+
+          @media (max-width: 767px) {
+            .ch-maint-container { padding: 60px 16px 40px !important; }
+            .ch-maint-form { padding: 20px !important; }
+            .ch-maint-priority { grid-template-columns: 1fr !important; gap: 12px !important; }
+            .ch-maint-priority-btn { width: 100% !important; text-align: left !important; }
+            .ch-maint-dropzone { padding: 20px !important; }
+            .ch-maint-actions { display: block !important; }
+            .ch-maint-actions button { display: block !important; width: 100% !important; margin-bottom: 10px !important; }
+            .ch-maint-container img { max-width: 100% !important; height: auto !important; }
+          }
+
+          @media (min-width: 768px) and (max-width: 1024px) {
+            .ch-maint-container { padding: 80px 20px 48px !important; }
+            .ch-maint-form { padding: 36px !important; }
+            .ch-maint-priority { grid-template-columns: repeat(3,1fr) !important; }
+            .ch-maint-actions { display: flex !important; justify-content: space-between !important; }
+            .ch-maint-actions button { min-width: 140px !important; }
+          }
+        `}</style>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '50px' }}>
           <div>
@@ -107,7 +137,7 @@ export default function ChiriasMaintenance() {
           </div>
         )}
 
-        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
+        <div className="ch-maint-form" style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: '50px' }}>
 
           <div style={{ marginBottom: '36px' }}>
             <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Issue Title *</label>
@@ -133,10 +163,11 @@ export default function ChiriasMaintenance() {
 
           <div style={{ marginBottom: '36px' }}>
             <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#999', marginBottom: '12px' }}>Priority Level *</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+            <div className="ch-maint-priority" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
               {urgentaOptions.map(opt => (
                 <button
                   key={opt.value}
+                  className="ch-maint-priority-btn"
                   onClick={() => setUrgenta(opt.value)}
                   style={{
                     padding: '16px',
@@ -162,6 +193,7 @@ export default function ChiriasMaintenance() {
               onDragLeave={() => setDragOver(false)}
               onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) setPoza(f); }}
               onClick={() => document.getElementById('fotoInput').click()}
+              className="ch-maint-dropzone"
               style={{
                 border: `2px dashed ${dragOver ? '#1d1d1b' : 'rgba(29,29,27,0.2)'}`,
                 padding: '40px 30px',
@@ -191,7 +223,7 @@ export default function ChiriasMaintenance() {
             </div>
 
             {poza && (
-              <div style={{ marginTop: '12px', position: 'relative', display: 'inline-block' }}>
+              <div data-label="Preview" style={{ marginTop: '12px', position: 'relative', display: 'inline-block' }}>
                 <img
                   src={URL.createObjectURL(poza)}
                   alt="preview"
@@ -207,7 +239,7 @@ export default function ChiriasMaintenance() {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '30px' }}>
+          <div className="ch-maint-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '30px' }}>
             <button
               onClick={() => navigate('/chirias/dashboard')}
               style={{ fontSize: '14px', color: '#999', background: 'none', border: 'none', cursor: 'pointer', borderBottom: '1px solid #ccc', paddingBottom: '2px', fontFamily: 'Helvetica, sans-serif' }}

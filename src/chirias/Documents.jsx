@@ -59,9 +59,45 @@ export default function ChiriasDocuments() {
   const semnate = docs.filter(d => d.status === 'Signed').length;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
+    <div className="ch-docs-root" style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '100px 30px 60px' }}>
+      <div className="ch-docs-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '100px 30px 60px' }}>
+
+        {/* Scoped responsive styles - injected at start of return */}
+        <style>{`
+          .ch-docs-root { }
+          .ch-docs-container { }
+          .ch-docs-stats { }
+          .ch-docs-stats-item { }
+          .ch-docs-filters { }
+          .ch-docs-table { }
+          .ch-docs-tableHeader { }
+          .ch-docs-row { }
+
+          @media (max-width: 767px) {
+            .ch-docs-container { padding: 60px 16px 40px !important; }
+            .ch-docs-stats { display: flex !important; flex-direction: row !important; overflow-x: auto; gap: 12px; padding-bottom: 8px; }
+            .ch-docs-stats-item { min-width: 220px; flex: 0 0 auto; }
+
+            .ch-docs-filters { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+            .ch-docs-filters button { display: inline-block; }
+
+            .ch-docs-tableHeader { display: none !important; }
+
+            .ch-docs-table { border-radius: 0; overflow: visible; }
+            .ch-docs-row { display: block !important; padding: 16px !important; }
+            .ch-docs-row > * { display: block !important; width: 100% !important; padding: 6px 0 !important; }
+            .ch-docs-row [data-label]::before { content: attr(data-label); display: block; font-size: 11px; letter-spacing: 0.25em; color: #999; text-transform: uppercase; margin-bottom: 6px; }
+            .ch-docs-row a { margin-top: 8px; display: inline-block; }
+          }
+
+          @media (min-width: 768px) and (max-width: 1024px) {
+            .ch-docs-container { padding: 80px 24px 48px !important; }
+            .ch-docs-stats { grid-template-columns: repeat(3, 1fr) !important; }
+            .ch-docs-filters { flex-wrap: wrap; }
+            .ch-docs-row { grid-template-columns: 2fr 1fr 1fr 1fr 100px !important; }
+          }
+        `}</style>
 
         <div style={{ marginBottom: '16px' }}>
           <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase' }}>Tenant Portal</span>
@@ -70,20 +106,20 @@ export default function ChiriasDocuments() {
           My<br />Documents
         </h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', marginBottom: '2px' }}>
+        <div className="ch-docs-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', marginBottom: '2px' }}>
           {[
             { label: 'TOTAL', value: total },
             { label: 'CONTRACTS', value: contracte },
             { label: 'SIGNED', value: semnate },
           ].map(stat => (
-            <div key={stat.label} style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '30px', background: '#fff', textAlign: 'center' }}>
+            <div key={stat.label} className="ch-docs-stats-item" style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '30px', background: '#fff', textAlign: 'center' }}>
               <div style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', marginBottom: '12px' }}>{stat.label}</div>
               <div style={{ fontFamily: 'Forum, serif', fontSize: '48px', color: '#1d1d1b', lineHeight: 1 }}>{loading ? '—' : stat.value}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'flex', marginBottom: '2px' }}>
+        <div className="ch-docs-filters" style={{ display: 'flex', marginBottom: '2px' }}>
           {filtre.map(f => (
             <button
               key={f}
@@ -95,8 +131,8 @@ export default function ChiriasDocuments() {
           ))}
         </div>
 
-        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 100px', padding: '14px 24px', background: '#fcfdf5', borderBottom: '1px solid rgba(29,29,27,0.08)' }}>
+        <div className="ch-docs-table" style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff' }}>
+          <div className="ch-docs-tableHeader" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 100px', padding: '14px 24px', background: '#fcfdf5', borderBottom: '1px solid rgba(29,29,27,0.08)' }}>
             {['DOCUMENT', 'TYPE', 'DATE', 'STATUS', ''].map(col => (
               <span key={col} style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>{col}</span>
             ))}
@@ -116,11 +152,12 @@ export default function ChiriasDocuments() {
               return (
                 <div
                   key={doc.id}
+                  className="ch-docs-row"
                   style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 100px', padding: '20px 24px', borderBottom: i < docsFiltrate.length - 1 ? '1px solid rgba(29,29,27,0.06)' : 'none', alignItems: 'center', transition: 'background 0.15s' }}
                   onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
                   onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div data-label="Document" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{ width: '36px', height: '36px', background: '#fcfdf5', border: '1px solid rgba(29,29,27,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <svg width="16" height="18" viewBox="0 0 16 18" fill="none" stroke="#999" strokeWidth="1.5">
                         <path d="M9 1H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
@@ -132,13 +169,14 @@ export default function ChiriasDocuments() {
                       <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>{doc.marime || ''}</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: '14px', color: '#555' }}>{getTipLabel(doc.tip)}</span>
-                  <span style={{ fontSize: '14px', color: '#555' }}>{doc.data_upload || doc.data || '—'}</span>
-                  <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
+                  <span data-label="Type" style={{ fontSize: '14px', color: '#555' }}>{getTipLabel(doc.tip)}</span>
+                  <span data-label="Date" style={{ fontSize: '14px', color: '#555' }}>{doc.data_upload || doc.data || '—'}</span>
+                  <span data-label="Status" style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
                     {status}
                   </span>
                   
                   <a
+                    data-label="Action"
                     href={`https://management-apartamente-api.onrender.com${doc.cale}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -153,6 +191,8 @@ export default function ChiriasDocuments() {
             })
           )}
         </div>
+
+        
 
         <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fcfdf5', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

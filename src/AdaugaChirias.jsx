@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 
@@ -14,6 +14,15 @@ function AdaugaChirias() {
   const [loading, setLoading] = useState(false);
   const [succes, setSucces] = useState(false);
   const navigate = useNavigate();
+
+  // Detectăm lățimea ecranului pentru a face ajustări fine pe mobil
+  const [isMobil, setIsMobil] = useState(window.innerWidth < 600);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobil(window.innerWidth < 600);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSave = async () => {
     if (!nume || !ap) {
@@ -88,9 +97,10 @@ function AdaugaChirias() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '100px 20px 60px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobil ? '80px 16px 40px' : '100px 20px 60px' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
+        {/* Antetul: Se aliniază pe verticală pe mobil și are un flux natural */}
+        <div style={{ display: 'flex', flexDirection: isMobil ? 'column-reverse' : 'row', justifyContent: 'space-between', alignItems: isMobil ? 'flex-start' : 'flex-start', marginBottom: '40px', gap: '16px' }}>
           <div>
             <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>Manager Panel</span>
             <h1 style={{ fontFamily: 'Forum, serif', fontSize: 'clamp(32px, 6vw, 52px)', fontWeight: 400, color: '#1d1d1b', textTransform: 'uppercase', lineHeight: 1.1, margin: 0 }}>
@@ -99,7 +109,7 @@ function AdaugaChirias() {
           </div>
           <Link
             to="/manager/tenants"
-            style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '2px', marginTop: '8px', whiteSpace: 'nowrap' }}
+            style={{ fontSize: '14px', color: '#1d1d1b', textDecoration: 'none', borderBottom: '1px solid #1d1d1b', paddingBottom: '2px', marginTop: '8px', whiteSpace: 'nowrap', alignSelf: isMobil ? 'flex-end' : 'auto' }}
           >
             ← Back
           </Link>
@@ -117,14 +127,15 @@ function AdaugaChirias() {
           </div>
         )}
 
-        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: 'clamp(24px, 5vw, 50px)' }}>
+        <div style={{ background: '#fff', border: '1px solid rgba(29,29,27,0.12)', padding: isMobil ? '24px 20px' : 'clamp(24px, 5vw, 50px)' }}>
 
           <div style={{ marginBottom: '12px' }}>
             <span style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase' }}>Personal Information</span>
           </div>
 
           <div style={{ borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '24px', marginBottom: '36px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px 30px' }}>
+            {/* Grid-ul folosește auto-fit; pe telefon va trece automat pe 1 singură coloană, pe tabletă/laptop pe 2 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px 30px' }}>
               <div style={fieldStyle}>
                 <label style={labelStyle}>Full Name *</label>
                 <input
@@ -176,10 +187,11 @@ function AdaugaChirias() {
           </div>
 
           <div style={{ borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '24px', marginBottom: '40px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '24px 30px' }}>
+            {/* Pe mobil foarte mic (sub 350px) minmax(180px) putea strica design-ul, acum e complet fluid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px 30px' }}>
               <div style={fieldStyle}>
                 <label style={labelStyle}>Lease Start</label>
-                <input
+                <input 
                   type="date"
                   value={dataInceput}
                   onChange={e => setDataInceput(e.target.value)}
@@ -217,10 +229,11 @@ function AdaugaChirias() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '24px' }}>
+          {/* Zona de butoane: Pe laptop stau în linie, pe mobil butonul devine full-width, iar Cancel se mută dedesubt, centrat */}
+          <div style={{ display: 'flex', flexDirection: isMobil ? 'column-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', gap: '20px', borderTop: '1px solid rgba(29,29,27,0.08)', paddingTop: '24px' }}>
             <Link
               to="/manager/tenants"
-              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px' }}
+              style={{ fontSize: '14px', color: '#999', textDecoration: 'none', borderBottom: '1px solid #ccc', paddingBottom: '2px', textAlign: 'center' }}
             >
               Cancel
             </Link>
@@ -237,8 +250,9 @@ function AdaugaChirias() {
                 fontFamily: 'Helvetica, sans-serif',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',
-                width: 'auto',
+                width: isMobil ? '100%' : 'auto',
                 minWidth: '160px',
+                textAlign: 'center'
               }}
               onMouseOver={e => { if (!loading) e.currentTarget.style.opacity = '0.8'; }}
               onMouseOut={e => e.currentTarget.style.opacity = '1'}

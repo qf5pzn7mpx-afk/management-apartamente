@@ -102,9 +102,47 @@ export default function ChiriasInvoices() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
+    <div className="ch-inv-root" style={{ minHeight: '100vh', backgroundColor: '#f9fafa', fontFamily: 'Helvetica, sans-serif' }}>
       <Navbar />
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '100px 30px 60px' }}>
+      <div className="ch-inv-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '100px 30px 60px' }}>
+
+        {/* Scoped responsive styles - injected at start of return */}
+        <style>{`
+          .ch-inv-root { }
+          .ch-inv-container { }
+          .ch-inv-stats { }
+          .ch-inv-stats-item { }
+          .ch-inv-filters { }
+          .ch-inv-table { }
+          .ch-inv-tableHeader { }
+          .ch-inv-row { }
+          .ch-inv-modalOverlay { }
+          .ch-inv-modalDialog { }
+
+          @media (max-width: 767px) {
+            .ch-inv-container { padding: 60px 16px 40px !important; }
+            .ch-inv-stats { display:flex !important; gap:12px; overflow-x:auto; padding-bottom:8px; }
+            .ch-inv-stats-item { min-width:200px; flex:0 0 auto; }
+
+            .ch-inv-filters { overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch; }
+            .ch-inv-filters button { display:inline-block; }
+
+            .ch-inv-tableHeader { display:none !important; }
+            .ch-inv-table { overflow:visible; }
+            .ch-inv-row { display:block !important; padding:12px !important; }
+            .ch-inv-row > * { display:block !important; width:100% !important; padding:6px 0 !important; }
+            .ch-inv-row [data-label]::before { content: attr(data-label); display:block; font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:6px; }
+            .ch-inv-modalDialog { width: calc(100% - 24px) !important; max-width:520px !important; }
+          }
+
+          @media (min-width: 768px) and (max-width: 1024px) {
+            .ch-inv-container { padding: 80px 24px 48px !important; }
+            .ch-inv-stats { grid-template-columns: repeat(3,1fr) !important; }
+            .ch-inv-filters { flex-wrap:wrap; }
+            .ch-inv-row { grid-template-columns: 80px 1fr 1fr 1fr 1fr 120px !important; }
+            .ch-inv-modalDialog { padding: 28px !important; }
+          }
+        `}</style>
 
         <div style={{ marginBottom: '16px' }}>
           <span style={{ fontSize: '13px', letterSpacing: '0.3em', color: '#888', textTransform: 'uppercase' }}>Tenant Portal</span>
@@ -113,20 +151,20 @@ export default function ChiriasInvoices() {
           My<br />Invoices
         </h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', marginBottom: '2px' }}>
+        <div className="ch-inv-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', marginBottom: '2px' }}>
           {[
             { label: 'TOTAL INVOICES', value: invoices.length },
             { label: 'UNPAID', value: invoices.filter(i => !platitIds.includes(i.id) && i.status !== 'Plătită').length },
             { label: 'AMOUNT DUE', value: `${totalDatorat} RON` },
           ].map(stat => (
-            <div key={stat.label} style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '30px', background: '#fff', textAlign: 'center' }}>
+            <div key={stat.label} className="ch-inv-stats-item" style={{ border: '1px solid rgba(29,29,27,0.12)', padding: '30px', background: '#fff', textAlign: 'center' }}>
               <div style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#999', textTransform: 'uppercase', marginBottom: '12px' }}>{stat.label}</div>
               <div style={{ fontFamily: 'Forum, serif', fontSize: '40px', color: '#1d1d1b', lineHeight: 1 }}>{loading ? '—' : stat.value}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '2px 0' }}>
+        <div className="ch-inv-filters" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '2px 0' }}>
           <div style={{ display: 'flex' }}>
             {filtre.map(f => (
               <button
@@ -140,8 +178,8 @@ export default function ChiriasInvoices() {
           </div>
         </div>
 
-        <div style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr 1fr 120px', padding: '14px 24px', background: '#fcfdf5', borderBottom: '1px solid rgba(29,29,27,0.08)' }}>
+        <div className="ch-inv-table" style={{ border: '1px solid rgba(29,29,27,0.12)', background: '#fff' }}>
+          <div className="ch-inv-tableHeader" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr 1fr 120px', padding: '14px 24px', background: '#fcfdf5', borderBottom: '1px solid rgba(29,29,27,0.08)' }}>
             {['ID', 'DESCRIPTION', 'AMOUNT', 'DATE', 'STATUS', ''].map(col => (
               <span key={col} style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#999', textTransform: 'uppercase' }}>{col}</span>
             ))}
@@ -158,19 +196,21 @@ export default function ChiriasInvoices() {
               return (
                 <div
                   key={inv.id}
+                  className="ch-inv-row"
                   style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr 1fr 120px', padding: '20px 24px', borderBottom: i < invoicesFiltrate.length - 1 ? '1px solid rgba(29,29,27,0.06)' : 'none', alignItems: 'center', transition: 'background 0.15s' }}
                   onMouseOver={e => e.currentTarget.style.background = '#fcfdf5'}
                   onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  <span style={{ fontSize: '14px', color: '#999' }}>#{inv.id}</span>
-                  <span style={{ fontSize: '14px', color: '#1d1d1b' }}>{inv.tip || inv.description || '—'}</span>
-                  <span style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 600 }}>{inv.suma || inv.amount || '—'} RON</span>
-                  <span style={{ fontSize: '14px', color: '#555' }}>{inv.data_emiterii || inv.data || '—'}</span>
-                  <span style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
+                  <span data-label="ID" style={{ fontSize: '14px', color: '#999' }}>#{inv.id}</span>
+                  <span data-label="Description" style={{ fontSize: '14px', color: '#1d1d1b' }}>{inv.tip || inv.description || '—'}</span>
+                  <span data-label="Amount" style={{ fontSize: '15px', color: '#1d1d1b', fontWeight: 600 }}>{inv.suma || inv.amount || '—'} RON</span>
+                  <span data-label="Date" style={{ fontSize: '14px', color: '#555' }}>{inv.data_emiterii || inv.data || '—'}</span>
+                  <span data-label="Status" style={{ display: 'inline-block', padding: '4px 14px', fontSize: '13px', background: getStatusBg(status), color: getStatusColor(status) }}>
                     {status}
                   </span>
                   {!isPaid ? (
                     <button
+                      data-label="Action"
                       onClick={() => setPlatModal(inv)}
                       style={{ background: '#1d1d1b', color: '#f9fafa', border: 'none', padding: '8px 16px', fontSize: '13px', cursor: 'pointer', fontFamily: 'Helvetica, sans-serif', transition: 'opacity 0.2s' }}
                       onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
@@ -179,7 +219,7 @@ export default function ChiriasInvoices() {
                       Pay Now
                     </button>
                   ) : (
-                    <span style={{ fontSize: '13px', color: '#2d7a2d' }}>✓ Paid</span>
+                    <span data-label="Action" style={{ fontSize: '13px', color: '#2d7a2d' }}>✓ Paid</span>
                   )}
                 </div>
               );
@@ -190,10 +230,12 @@ export default function ChiriasInvoices() {
 
       {platModal && (
         <div
+          className="ch-inv-modalOverlay"
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
           onClick={() => setPlatModal(null)}
         >
           <div
+            className="ch-inv-modalDialog"
             style={{ background: '#fff', width: '100%', maxWidth: '520px', padding: '0', overflow: 'hidden' }}
             onClick={e => e.stopPropagation()}
           >
